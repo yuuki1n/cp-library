@@ -1,0 +1,20 @@
+# ビルド成果物
+*.exe
+*.out
+*.o
+*.obj
+a.out
+main
+main_debug
+
+# ローカル入出力
+input.txt
+output.txt
+expected.txt
+
+# エディタ / OS
+.vscode/
+.idea/
+*.swp
+Thumbs.db
+desktop.ini
