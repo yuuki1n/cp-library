@@ -6,7 +6,7 @@
 
 | ディレクトリ | 内容 |
 |---|---|
-| `ds/` | データ構造（セグメント木、BIT、Union-Find、遅延セグ木 など） |
+| `data_structure/` | データ構造（セグメント木、BIT、Union-Find、遅延セグ木 など） |
 | `graph/` | グラフ（BFS/DFS、ダイクストラ、SCC、最小全域木、最大流 など） |
 | `math/` | 数学（modint、組合せ、素数、行列 など） |
 | `string/` | 文字列（Z-algorithm、ローリングハッシュ、Suffix Array など） |
@@ -16,20 +16,16 @@
 
 ## 使い方
 
-問題を解くディレクトリ（`atcoder/algo`）からは相対パス、またはインクルードパス指定で参照する。
+**include はしない。** 使うときは `.hpp` からクラス本体を `atcoder/algo/main.cpp` の
+「ライブラリ貼り付け欄」へコピーする。AtCoder は 1 ファイルでの提出なので、
+ローカルでも提出時と同じ形で動かすため。
 
-```cpp
-#include "../lib/ds/segtree.hpp"
-```
+貼るときに落とすもの:
 
-```
-g++ -std=gnu++20 -O2 -I D:/OneDrive/workspace/atcoder/lib main.cpp
-```
-```cpp
-#include <ds/segtree.hpp>
-```
+- `#pragma once`
+- `#include <...>`（テンプレート冒頭の `bits/stdc++.h` で足りる）
 
-AtCoder へ提出するときはヘッダの中身を貼り付ける（1 ファイルにまとめる必要があるため）。
+`std::` 修飾は付いたままで動くので、消さなくてよい。
 
 ## 実装の約束ごと
 
