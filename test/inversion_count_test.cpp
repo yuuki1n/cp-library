@@ -1,5 +1,5 @@
-// util/inversion.hpp の検証。総当たりと突き合わせる。
-//   g++ -std=gnu++20 -O2 -Wall -Wextra -I.. inversion_test.cpp -o inversion_test
+// util/inversion_count.hpp の検証。総当たりと突き合わせる。
+//   g++ -std=gnu++20 -O2 -Wall -Wextra -I.. inversion_count_test.cpp -o inversion_count_test
 #include <algorithm>
 #include <chrono>
 #include <cstdio>
@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 
-#include "../util/inversion.hpp"
+#include "../util/inversion_count.hpp"
 
 using ll = long long;
 using namespace std;
