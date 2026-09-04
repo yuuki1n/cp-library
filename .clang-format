@@ -1,1 +1,4 @@
 BasedOnStyle: Google
+# 日本語コメントは 1 文字 3 バイトのため 80 桁判定が早く効き、
+# 折り返しでドキュメントが崩れる。再折り返しを止める。
+ReflowComments: false
