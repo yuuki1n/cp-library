@@ -9,13 +9,15 @@ using namespace atcoder;
 #include "../graph/dsu/relational_dsu.hpp"
 #include "../graph/dsu/rollback_dsu.hpp"
 
-int ng = 0;
+int ng = 0;        // 今のブロックの NG 件数（report のたびに 0 に戻す）
+int ng_total = 0;  // 全体の NG 件数
 void check(bool ok, const string& msg) {
   if (!ok && ng < 5) printf("  NG: %s\n", msg.c_str());
-  if (!ok) ng++;
+  if (!ok) ng++, ng_total++;
 }
 void report(const string& name) {
   printf("%-30s : %s\n", name.c_str(), ng ? "NG" : "OK");
+  ng = 0;
 }
 
 // 素朴な参照実装
@@ -360,6 +362,6 @@ int main() {
     });
   }
 
-  puts(ng ? "\nNG あり" : "\nすべて OK");
-  return ng ? 1 : 0;
+  printf(ng_total ? "\nNG %d 件\n" : "\nすべて OK\n", ng_total);
+  return ng_total ? 1 : 0;
 }
