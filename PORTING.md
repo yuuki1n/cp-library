@@ -5,9 +5,9 @@ C++ に移し替えていく。このファイルはコミット・プッシュ�
 
 移植の進み具合と verify の進み具合は別物なので、それぞれ分けて数えている。
 
-- **移植済み** 8 / 58（うち verify 済み **0**）
+- **移植済み** 11 / 58（うち verify 済み **0**）
 - **移植不要** 23 / 58（ACL 17・標準ライブラリ 4・対象外 2）
-- **残り** 27 / 58（高 7・中 9・低 11）
+- **残り** 24 / 58（高 4・中 9・低 11）
 
 ---
 
@@ -23,6 +23,8 @@ C++ に移し替えていく。このファイルはコミット・プッシュ�
 | `graph/unionfind/RelationalUnionFind` | `graph/dsu/relational_dsu.hpp` | 未 | |
 | `graph/unionfind/RollbackUnionFind` | `graph/dsu/rollback_dsu.hpp` | 未 | |
 | `graph/unionfind/DynamicUnionFind` | `graph/dsu/dynamic_dsu.hpp` | 未 | |
+| `graph/Edge` `graph/Graph` | `graph/graph.hpp` | 未 | 隣接リスト。2 ファイルを 1 つにまとめた |
+| `graph/Dijkstra` | `graph/dijkstra.hpp` | 未 | `graph.hpp` と組で使う |
 
 Java に無い追加分: `util/inversion_count.hpp`（転倒数、マージソート版）。これも未 verify。
 
@@ -74,8 +76,6 @@ Java に無い追加分: `util/inversion_count.hpp`（転倒数、マージソ�
 | Java | 想定ファイル名 | 内容 |
 |---|---|---|
 | `math/Combin` | `math/combin.hpp` | 階乗テーブル、`nCr` / `nHr`。modint と組む |
-| `graph/Graph` `graph/Edge` | `graph/graph.hpp` | 隣接リストの入れ物。他のグラフ系の土台になる |
-| `graph/Dijkstra` | `graph/dijkstra.hpp` | 最短路 |
 | `dataStructure/rangeData/SparseTable` | `data_structure/sparse_table.hpp` | 区間 min/max を `O(1)` |
 | `string/RollingHash` | `string/rolling_hash.hpp` | |
 | `other/Grid` | `util/grid.hpp` | 2 次元グリッドの添字変換と 4/8 近傍 |
@@ -113,7 +113,7 @@ Java に無い追加分: `util/inversion_count.hpp`（転倒数、マージソ�
 
 ## verify 状況
 
-**0 / 9 が verify 済み。** `test/` のテストは総当たりとの突き合わせなので、
+**0 / 11 が verify 済み。** `test/` のテストは総当たりとの突き合わせなので、
 実装の正しさはある程度見ているが、公開ジャッジは 1 つも通していない。
 
 | ライブラリ | 状態 | verify 先 |
@@ -127,6 +127,8 @@ Java に無い追加分: `util/inversion_count.hpp`（転倒数、マージソ�
 | `relational_dsu` | 未 | [unionfind_with_potential](https://judge.yosupo.jp/problem/unionfind_with_potential) / [非可換版](https://judge.yosupo.jp/problem/unionfind_with_potential_non_commutative_group) |
 | `rollback_dsu` | 未 | 同上（`monoid_dsu` と組で） |
 | `dynamic_dsu` | 未 | 未定 |
+| `graph` | 未 | `dijkstra` と一緒に検証される |
+| `dijkstra` | 未 | [shortest_path](https://judge.yosupo.jp/problem/shortest_path) |
 
 `relational_dsu` の非可換版は優先度が高い。現状のテストは `plus` と `bit_xor` だけで
 どちらも可換なため、**合成順を間違えていても検出できない**。
