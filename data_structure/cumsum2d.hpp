@@ -13,6 +13,7 @@
  *   cs(i2, j2);                       // [0, i2) x [0, j2) の和
  *   cs.all_sum();
  *   cs.h();  cs.w();
+ *   cs.clear();                      // 空の状態に戻す
  *
  * verify:
  *   (未 verify)
@@ -31,6 +32,8 @@ struct cumsum2d {
       for (std::size_t j = 0; j < w; j++)
         s[i + 1][j + 1] = s[i][j + 1] + s[i + 1][j] - s[i][j] + T(a[i][j]);
   }
+
+  void clear() { s.assign(1, std::vector<T>(1, T())); }
 
   std::size_t h() const { return s.size() - 1; }
   std::size_t w() const { return s[0].size() - 1; }
