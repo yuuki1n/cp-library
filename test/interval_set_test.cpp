@@ -1,5 +1,7 @@
 // data_structure/interval_set.hpp の検証。set<int> による総当たりと突き合わせる。
 //   g++ -std=gnu++20 -O2 -Wall -Wextra -I.. interval_set_test.cpp -o interval_set_test
+#include "../data_structure/interval_set.hpp"
+
 #include <chrono>
 #include <climits>
 #include <cstdio>
@@ -7,8 +9,6 @@
 #include <set>
 #include <utility>
 #include <vector>
-
-#include "../data_structure/interval_set.hpp"
 
 using ll = long long;
 using namespace std;
@@ -22,10 +22,10 @@ void check(bool ok, const char* what) {
 }
 
 // 正規形（昇順・交わらない・隣接しない・空でない）を保っているか
-bool canonical(const IntervalSet& s) {
+bool canonical(const interval_set& s) {
   ll prev_r = LLONG_MIN, tot = 0;
   for (auto [l, r] : s.intervals()) {
-    if (l >= r) return false;              // 空区間が残っている
+    if (l >= r) return false;                              // 空区間が残っている
     if (prev_r != LLONG_MIN && l <= prev_r) return false;  // 交差 or 隣接
     prev_r = r;
     tot += r - l;
@@ -41,7 +41,7 @@ int main() {
     const int LIM = 50;
     int bad = 0;
     for (int t = 0; t < 3000; t++) {
-      IntervalSet s;
+      interval_set s;
       set<int> b;
       for (int q = 0; q < 40; q++) {
         int l = int(rng() % LIM), r = int(rng() % LIM);
@@ -85,7 +85,7 @@ int main() {
     const int LIM = 40;
     int bad = 0;
     for (int t = 0; t < 3000; t++) {
-      IntervalSet s;
+      interval_set s;
       set<int> b;
       for (int q = 0; q < 15; q++) {
         int l = int(rng() % LIM), r = l + int(rng() % 5) + 1;
@@ -112,7 +112,7 @@ int main() {
     const int LIM = 30;
     int bad = 0;
     for (int t = 0; t < 2000; t++) {
-      IntervalSet s;
+      interval_set s;
       vector<pair<int, int>> iv;
       for (int q = 0; q < 5; q++) {
         int l = int(rng() % LIM), r = l + int(rng() % 6) + 1;
@@ -136,11 +136,13 @@ int main() {
 
   // ---- 隣接区間の併合 ----
   {
-    IntervalSet s;
+    interval_set s;
     check(s.insert(0, 2) == 2, "insert(0,2) の戻り値");
     check(s.insert(2, 5) == 3, "insert(2,5) の戻り値");
     check(s.intervals().size() == 1, "隣接区間が 1 本に併合されない");
-    check(s.intervals().begin()->first == 0 && s.intervals().begin()->second == 5, "[0,5) になる");
+    check(
+        s.intervals().begin()->first == 0 && s.intervals().begin()->second == 5,
+        "[0,5) になる");
     check(s.size() == 5, "size");
     check(s.insert(1, 3) == 0, "既に覆われた範囲の insert は 0");
     printf("隣接区間の併合             : OK\n");
@@ -148,12 +150,16 @@ int main() {
 
   // ---- 内側を erase して分割 ----
   {
-    IntervalSet s;
+    interval_set s;
     s.insert(0, 10);
     check(s.erase(3, 5) == 2, "erase(3,5) の戻り値");
     check(s.intervals().size() == 2, "2 本に分かれない");
-    check(s.intervals().begin()->first == 0 && s.intervals().begin()->second == 3, "左が [0,3)");
-    check(s.intervals().rbegin()->first == 5 && s.intervals().rbegin()->second == 10, "右が [5,10)");
+    check(
+        s.intervals().begin()->first == 0 && s.intervals().begin()->second == 3,
+        "左が [0,3)");
+    check(s.intervals().rbegin()->first == 5 &&
+              s.intervals().rbegin()->second == 10,
+          "右が [5,10)");
     check(s.size() == 8, "size");
     check(s.erase(3, 5) == 0, "覆われていない範囲の erase は 0");
     printf("内側 erase による分割      : OK\n");
@@ -161,7 +167,7 @@ int main() {
 
   // ---- 複数区間をまたぐ操作 ----
   {
-    IntervalSet s;
+    interval_set s;
     s.insert(0, 2);
     s.insert(4, 6);
     s.insert(8, 10);
@@ -175,7 +181,7 @@ int main() {
 
   // ---- 境界・空・l >= r ----
   {
-    IntervalSet s;
+    interval_set s;
     check(s.size() == 0 && s.empty(), "初期状態");
     check(s.mex() == 0, "空の mex");
     check(!s.contains(0), "空の contains");
@@ -196,7 +202,7 @@ int main() {
 
   // ---- 10^18 級の座標 ----
   {
-    IntervalSet s;
+    interval_set s;
     const ll B = 1000000000000000000LL;
     check(s.insert(B, B + 5) == 5, "大きい座標の insert");
     check(s.insert(-B - 5, -B) == 5, "負の大きい座標");
@@ -210,7 +216,7 @@ int main() {
 
   // ---- 速度 ----
   {
-    IntervalSet s;
+    interval_set s;
     const int Q = 200000;
     vector<pair<ll, ll>> qs(Q);
     for (auto& q : qs) {

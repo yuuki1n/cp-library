@@ -1,10 +1,10 @@
 // data_structure/cumsum.hpp の検証。総当たりと突き合わせる。
 //   g++ -std=gnu++20 -O2 -Wall -Wextra -I.. cumsum_test.cpp -o cumsum_test
+#include "../data_structure/cumsum.hpp"
+
 #include <cstdio>
 #include <random>
 #include <vector>
-
-#include "../data_structure/cumsum.hpp"
 
 using ll = long long;
 using namespace std;
@@ -27,7 +27,7 @@ int main() {
       int n = int(rng() % 30);
       vector<int> a(n);
       for (auto& x : a) x = int(rng() % 2001) - 1000;
-      CumSum<ll> cs(a);
+      cumsum<ll> cs(a);
       if ((int)cs.size() != n) bad++;
       for (int l = 0; l <= n; l++) {
         ll acc = 0;
@@ -58,7 +58,7 @@ int main() {
     for (int t = 0; t < 2000; t++) {
       int n = int(rng() % 30);
       bool useLen = rng() & 1;
-      CumSum<ll> cs = useLen ? CumSum<ll>(size_t(rng() % 10)) : CumSum<ll>();
+      cumsum<ll> cs = useLen ? cumsum<ll>(size_t(rng() % 10)) : cumsum<ll>();
       vector<int> a;
       for (int i = 0; i < n; i++) {
         int x = int(rng() % 2001) - 1000;
@@ -83,7 +83,7 @@ int main() {
 
   // ---- clear / reserve ----
   {
-    CumSum<ll> cs;
+    cumsum<ll> cs;
     cs += 5;
     cs += 7;
     check(cs.all_sum() == 12, "clear 前の合計");
@@ -98,7 +98,7 @@ int main() {
   // ---- int の vector でも T で累積されるか ----
   {
     vector<int> big(200000, 1000000000);
-    CumSum<ll> cs(big);
+    cumsum<ll> cs(big);
     check(cs.all_sum() == 200000LL * 1000000000LL, "int の vector で溢れない");
     printf("int の vector -> ll 累積 : OK (%lld)\n", cs.all_sum());
   }

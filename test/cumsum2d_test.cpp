@@ -1,10 +1,10 @@
 // data_structure/cumsum2d.hpp の検証。総当たりと突き合わせる。
 //   g++ -std=gnu++20 -O2 -Wall -Wextra -I.. cumsum2d_test.cpp -o cumsum2d_test
+#include "../data_structure/cumsum2d.hpp"
+
 #include <cstdio>
 #include <random>
 #include <vector>
-
-#include "../data_structure/cumsum2d.hpp"
 
 using ll = long long;
 using namespace std;
@@ -29,7 +29,7 @@ int main() {
       vector<vector<int>> g(h, vector<int>(w));
       for (auto& row : g)
         for (auto& x : row) x = int(rng() % 201) - 100;
-      CumSum2D<ll> cs(g);
+      cumsum2d<ll> cs(g);
       if ((int)cs.h() != h || (int)cs.w() != w) bad++;
       for (int i1 = 0; i1 <= h; i1++)
         for (int i2 = i1; i2 <= h; i2++)
@@ -58,19 +58,21 @@ int main() {
 
   // ---- 空 / デフォルト構築 ----
   {
-    CumSum2D<ll> cs;
+    cumsum2d<ll> cs;
     check(cs.h() == 0 && cs.w() == 0 && cs.all_sum() == 0, "デフォルト構築");
     vector<vector<int>> e;
-    CumSum2D<ll> cs2(e);
-    check(cs2.h() == 0 && cs2.w() == 0 && cs2.all_sum() == 0, "空 vector から構築");
+    cumsum2d<ll> cs2(e);
+    check(cs2.h() == 0 && cs2.w() == 0 && cs2.all_sum() == 0,
+          "空 vector から構築");
     printf("空 / デフォルト構築      : OK\n");
   }
 
   // ---- int の grid でも T で累積されるか ----
   {
     vector<vector<int>> big(400, vector<int>(400, 1000000000));
-    CumSum2D<ll> cs(big);
-    check(cs.all_sum() == 400LL * 400LL * 1000000000LL, "int の grid で溢れない");
+    cumsum2d<ll> cs(big);
+    check(cs.all_sum() == 400LL * 400LL * 1000000000LL,
+          "int の grid で溢れない");
     printf("int の grid -> ll 累積   : OK (%lld)\n", cs.all_sum());
   }
 

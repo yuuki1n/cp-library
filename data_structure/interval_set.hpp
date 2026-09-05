@@ -4,7 +4,7 @@
 #include <utility>
 
 /*
- * IntervalSet : 半開区間 [l, r) の集合
+ * interval_set : 半開区間 [l, r) の集合
  *
  *   互いに交わらず隣接もしない正規形で保持する。つまり [0,2) と [2,5) を
  *   入れると [0,5) 1 本にまとまる（整数の集合として同じものなので）。
@@ -31,7 +31,7 @@
  *       9.2 * 10^18 未満に収めること。
  *
  * 使用例:
- *   IntervalSet s;
+ *   interval_set s;
  *   s.insert(1, 5);                 // 4 が返る
  *   s.insert(5, 8);                 // 3。[1,8) に併合される
  *   s.erase(3, 4);                  // 1。[1,3) と [4,8) に分かれる
@@ -43,7 +43,7 @@
  * verify:
  *   (未 verify)
  */
-struct IntervalSet {
+struct interval_set {
  private:
   std::map<long long, long long> mp;  // l -> r （半開区間 [l, r)）
   long long sz = 0;                   // 覆っている整数の総数
