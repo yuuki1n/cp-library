@@ -5,9 +5,9 @@ C++ に移し替えていく。このファイルはコミット・プッシュ�
 
 移植の進み具合と verify の進み具合は別物なので、それぞれ分けて数えている。
 
-- **移植済み** 11 / 58（うち verify 済み **0**）
+- **移植済み** 13 / 58（うち verify 済み **0**）
 - **移植不要** 23 / 58（ACL 17・標準ライブラリ 4・対象外 2）
-- **残り** 24 / 58（高 4・中 9・低 11）
+- **残り** 22 / 58（高 4・中 9・低 9）
 
 ---
 
@@ -25,6 +25,8 @@ C++ に移し替えていく。このファイルはコミット・プッシュ�
 | `graph/unionfind/DynamicUnionFind` | `graph/dsu/dynamic_dsu.hpp` | 未 | |
 | `graph/Edge` `graph/Graph` | `graph/graph.hpp` | 未 | 隣接リスト。2 ファイルを 1 つにまとめた |
 | `graph/Dijkstra` | `graph/dijkstra.hpp` | 未 | `graph.hpp` と組で使う |
+| `dataStructure/Trie` | `string/trie.hpp` | 未 | 文字列のトライ。接頭辞の本数を数える |
+| `dataStructure/BinaryTrie` | `data_structure/binary_trie.hpp` | 未 | xor 最小 / k 番目。xor_all は O(1) |
 
 Java に無い追加分: `util/inversion_count.hpp`（転倒数、マージソート版）。これも未 verify。
 
@@ -98,8 +100,6 @@ Java に無い追加分: `util/inversion_count.hpp`（転倒数、マージソ�
 
 | Java | 想定ファイル名 | 内容 |
 |---|---|---|
-| `dataStructure/Trie` | `string/trie.hpp` | |
-| `dataStructure/BinaryTrie` | `data_structure/binary_trie.hpp` | xor 最大 / k 番目 |
 | `dataStructure/AVLTree` | `data_structure/avl_tree.hpp` | 順序統計木。`std::set` + BIT で代用できることが多い |
 | `dataStructure/.../AVLSegmentTree` `AVLSegmentTreeLong` | — | 306 行。必要になってから |
 | `dataStructure/.../PersistentSegmentTree` | `data_structure/persistent_segtree.hpp` | |
@@ -113,7 +113,7 @@ Java に無い追加分: `util/inversion_count.hpp`（転倒数、マージソ�
 
 ## verify 状況
 
-**0 / 11 が verify 済み。** `test/` のテストは総当たりとの突き合わせなので、
+**0 / 13 が verify 済み。** `test/` のテストは総当たりとの突き合わせなので、
 実装の正しさはある程度見ているが、公開ジャッジは 1 つも通していない。
 
 | ライブラリ | 状態 | verify 先 |
@@ -127,6 +127,8 @@ Java に無い追加分: `util/inversion_count.hpp`（転倒数、マージソ�
 | `relational_dsu` | 未 | [unionfind_with_potential](https://judge.yosupo.jp/problem/unionfind_with_potential) / [非可換版](https://judge.yosupo.jp/problem/unionfind_with_potential_non_commutative_group) |
 | `rollback_dsu` | 未 | 同上（`monoid_dsu` と組で） |
 | `dynamic_dsu` | 未 | 未定 |
+| `trie` | 未 | 未定。[aho_corasick](https://judge.yosupo.jp/problem/aho_corasick) は別物（AC 自動機） |
+| `binary_trie` | 未 | [set_xor_min](https://judge.yosupo.jp/problem/set_xor_min) |
 | `graph` | 未 | `dijkstra` と一緒に検証される |
 | `dijkstra` | 未 | [shortest_path](https://judge.yosupo.jp/problem/shortest_path) |
 
