@@ -141,6 +141,9 @@ int main() {
     failed += bad ? 1 : 0;
   }
 
+#ifdef _GLIBCXX_DEBUG
+  puts("速度計測                       : _GLIBCXX_DEBUG のため省略");
+#else
   // ---- 速度: 10^18 級を 1000 個 ----
   {
     vector<ll> xs(1000);
@@ -186,6 +189,7 @@ int main() {
     printf("速度 factorize 1..2e5         : %lld ms\n", (ll)ms);
   }
 
+#endif
   printf("\n%s\n", failed == 0 ? "すべて OK" : "失敗あり");
   return failed == 0 ? 0 : 1;
 }

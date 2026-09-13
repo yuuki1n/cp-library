@@ -68,6 +68,21 @@ Java 版ライブラリからの移植状況は [PORTING.md](PORTING.md) を参�
 `clear()` は**構築直後の状態に戻す**。可変長のものは空にし、大きさが固定のものは
 大きさを保ったまま初期状態に戻す。
 
+## CI
+
+`push` のたびに GitHub Actions で `test/` 配下を全部ビルドして実行する
+（`.github/workflows/test.yml`）。
+
+- 通常ビルド（`-O2 -Wall -Wextra`）
+- `_GLIBCXX_DEBUG` ビルド（範囲外アクセスとイテレータの誤用を拾う）
+- 厳しめの警告は参考表示のみ。手元とジャッジで出方が違うので失敗にはしない
+
+テストは失敗したら 0 以外で終了すること。`test/` の各ファイルは
+`*_test.cpp` という名前にする（CI が glob で拾う）。
+
+速度計測は `#ifdef _GLIBCXX_DEBUG` で囲んで省略する。デバッグビルドで
+測った時間に意味がなく、CI が無駄に長くなるため。
+
 ## verify
 
 `test/` 配下に、AtCoder や Library Checker の問題を解くコードを置く。ヘッダ冒頭のコメントに verify 済みの問題 URL を必ず残す。

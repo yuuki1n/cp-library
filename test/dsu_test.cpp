@@ -325,6 +325,9 @@ int main() {
     report("clear / ガード");
   }
 
+#ifdef _GLIBCXX_DEBUG
+  puts("速度計測                       : _GLIBCXX_DEBUG のため省略");
+#else
   {  // ---- 速度 ----
     const int N = 200000, Q = 400000;
     vector<int> a(Q), b(Q);
@@ -362,6 +365,7 @@ int main() {
     });
   }
 
+#endif
   printf(ng_total ? "\nNG %d 件\n" : "\nすべて OK\n", ng_total);
   return ng_total ? 1 : 0;
 }

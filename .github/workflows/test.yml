@@ -1,0 +1,52 @@
+name: test
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: コンパイラの版を出す
+        run: g++ --version
+
+      - name: AtCoder Library を取得
+        run: git clone --depth 1 https://github.com/atcoder/ac-library.git "$HOME/ac-library"
+
+      # 本番と同じ設定。まずこれが通ることを確かめる
+      - name: 通常ビルドで全テスト
+        working-directory: test
+        run: |
+          for f in *_test.cpp; do
+            echo "::group::$f"
+            g++ -std=gnu++20 -O2 -Wall -Wextra -I.. -I"$HOME/ac-library" "$f" -o run
+            ./run
+            echo "::endgroup::"
+          done
+
+      # 範囲外アクセスとイテレータの誤用を拾う。速度計測は自動で省略される
+      - name: _GLIBCXX_DEBUG で全テスト
+        working-directory: test
+        run: |
+          for f in *_test.cpp; do
+            echo "::group::$f"
+            g++ -std=gnu++20 -O1 -Wall -Wextra -D_GLIBCXX_DEBUG -I.. -I"$HOME/ac-library" "$f" -o run_dbg
+            ./run_dbg
+            echo "::endgroup::"
+          done
+
+      # 落ちても止めない。手元とジャッジで警告の出方が違うことがあるため
+      - name: 厳しめの警告（参考）
+        continue-on-error: true
+        working-directory: test
+        run: |
+          for f in *_test.cpp; do
+            echo "::group::$f"
+            g++ -std=gnu++20 -O2 -Wall -Wextra -Wshadow -Wconversion -Wsign-conversion \
+                -Wuseless-cast -fsyntax-only -I.. -I"$HOME/ac-library" "$f"
+            echo "::endgroup::"
+          done

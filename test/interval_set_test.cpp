@@ -214,6 +214,9 @@ int main() {
     printf("10^18 級の座標             : OK\n");
   }
 
+#ifdef _GLIBCXX_DEBUG
+  puts("速度計測                       : _GLIBCXX_DEBUG のため省略");
+#else
   // ---- 速度 ----
   {
     interval_set s;
@@ -236,6 +239,7 @@ int main() {
     check(canonical(s), "速度テスト後も正規形");
   }
 
+#endif
   printf("\n%s\n", failed == 0 ? "すべて OK" : "失敗あり");
   return failed == 0 ? 0 : 1;
 }
