@@ -5,12 +5,11 @@
  * inversion_count(a) : 転倒数
  *
  *   マージソートで数える。O(N log N) / 追加メモリ O(N)。
- *   同値は転倒とみなさない（狭義 a[i] > a[j] のみ数える）。
+ *   同値は数えない（狭義 a[i] > a[j] のみ）。
+ *   隣接 swap で昇順にする最小回数と一致する。
  *
  * 使用例:
  *   long long inv = inversion_count(A);
- *
- *   隣接swapで昇順にする最小回数、バブルソートの交換回数と一致する。
  *
  * verify:
  *   (未 verify)

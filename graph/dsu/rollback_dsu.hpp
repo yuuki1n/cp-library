@@ -7,37 +7,29 @@
 /*
  * rollback_dsu : 併合を巻き戻せる dsu
  *
- *   経路圧縮をしない代わりに、merge のたびに変更を記録して undo できる。
- *   union by size だけなので木の高さは O(log n) に収まり、leader / same /
- *   size はすべて O(log n)、merge と undo は O(log n) / O(1)。
- *   辺を消す操作がある問題（Offline Dynamic Connectivity など）で使う。
+ *   merge(a, b)   併合する。実際に併合したら true          O(log n)
+ *   undo()        直前の merge を 1 回取り消す              O(1)
+ *   snapshot()    今までに呼んだ merge の回数
+ *   rollback(t)   merge を t 回呼んだ時点まで戻す
+ *   leader / same / size / group_count / group              O(log n)
+ *   clear()       構築直後に戻す（履歴も捨てる）
  *
- *   rollback_dsu(n)   頂点 0 .. n-1
- *   merge(a, b)      併合する。実際に併合したら true
- *   undo()           直前の merge を 1 回取り消す。併合しなかった merge も
- *                    1 回として数えるので、merge と undo は必ず 1 対 1 で対応する。
- *                    履歴が空のときは何もしない
- *   snapshot()       今までに呼んだ merge の回数
- *   rollback(t)      merge を t 回呼んだ時点まで戻す
- *   leader / same / size / group_count / group
- *   clear()          構築直後の状態に戻す（履歴も捨てる）
- *
- *   atcoder::dsu は継承していない。dsu の leader は経路圧縮をしてしまい
- *   巻き戻せる形にならないうえ、parent_or_size が private で書き戻せないため。
+ *   経路圧縮をしない代わりに変更を記録する。union by size だけなので
+ *   木の高さは O(log n)。辺を消す問題（Offline Dynamic Connectivity）で使う。
+ *   併合しなかった merge も 1 回と数えるので merge と undo は 1 対 1 で対応する。
+ *   履歴が空の undo は何もしない。
+ *   atcoder::dsu は継承していない。leader が経路圧縮をしてしまうため。
  *
  * 使用例:
  *   rollback_dsu uf(N);
  *   uf.merge(0, 1);
  *   int t = uf.snapshot();
  *   uf.merge(1, 2);
- *   uf.merge(3, 4);
- *   uf.rollback(t);          // 後ろ 2 回を取り消す
- *   print(uf.same(1, 2));    // false
+ *   uf.rollback(t);          // 取り消す
  *
  * verify:
  *   (未 verify)
  *   予定: https://judge.yosupo.jp/problem/dynamic_graph_vertex_add_component_sum
- *         （monoid_dsu と組み合わせて Offline Dynamic Connectivity で）
  */
 struct rollback_dsu {
  private:

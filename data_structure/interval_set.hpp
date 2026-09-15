@@ -6,39 +6,29 @@
 /*
  * interval_set : 半開区間 [l, r) の集合
  *
- *   互いに交わらず隣接もしない正規形で保持する。つまり [0,2) と [2,5) を
- *   入れると [0,5) 1 本にまとまる（整数の集合として同じものなので）。
- *   内部は map<l, r>。1 回の操作で触れた区間の数を k として O(k log n)。
- *   ならせば insert / erase とも O(log n)。
+ *   交わらず隣接もしない正規形で保つ。[0,2) と [2,5) は [0,5) に併合される。
+ *   内部は map<l, r>。insert / erase はならし O(log n)。
  *
+ *   insert(l, r)  追加し、新たに覆った個数を返す
+ *   insert(x)     insert(x, x + 1)
+ *   erase(l, r)   取り除き、実際に取り除いた個数を返す
+ *   erase(x)      erase(x, x + 1)
+ *   find(x)       x を含む区間。無ければ intervals().end()
+ *   contains(x) / same(x, y)
+ *   mex(x)        x 以上で覆われていない最小の値（既定 0）
  *   size()        覆っている整数の個数（区間の本数は intervals().size()）
- *   insert(l, r)  [l, r) を追加し、新たに覆った個数を返す
- *   insert(x)     insert(x, x + 1) と同じ
- *   erase(l, r)   [l, r) を取り除き、実際に取り除いた個数を返す
- *   erase(x)      erase(x, x + 1) と同じ
- *   find(x)       x を含む区間のイテレータ。無ければ intervals().end()
- *   contains(x)   x が覆われているか
- *   same(x, y)    x と y が同じ区間に属するか
- *   mex(x)        x 以上で覆われていない最小の値（既定は x = 0）
- *   intervals()   区間の map への const 参照。走査・出力用
+ *   intervals()   map への const 参照。走査・出力用
+ *   empty() / clear()
  *
- *   l >= r の呼び出しは何もせず 0 を返す。
- *
- *   座標の制限:
- *     - 座標は LLONG_MAX 未満であること。insert(x) は insert(x, x + 1) な
- *       ので、x = LLONG_MAX だと x + 1 が溢れて何も起きない。
- *     - 覆う総数が LLONG_MAX を超えると size() が溢れる。全体幅を
- *       9.2 * 10^18 未満に収めること。
+ *   l >= r は何もせず 0 を返す。
+ *   座標も覆う総数も LLONG_MAX 未満に収めること。
  *
  * 使用例:
  *   interval_set s;
- *   s.insert(1, 5);                 // 4 が返る
- *   s.insert(5, 8);                 // 3。[1,8) に併合される
- *   s.erase(3, 4);                  // 1。[1,3) と [4,8) に分かれる
- *   s.contains(3);                  // false
- *   s.mex();                        // 0
+ *   s.insert(1, 5);                  // 4
+ *   s.insert(5, 8);                  // 3。[1,8) に併合
+ *   s.erase(3, 4);                   // 1。[1,3) と [4,8) に分かれる
  *   fore(t, s.intervals()) print(t.fi, t.se);
- *   print(s.intervals());           // 1 行 1 区間で出力される
  *
  * verify:
  *   (未 verify)

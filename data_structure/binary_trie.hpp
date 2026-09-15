@@ -5,44 +5,26 @@
 /*
  * binary_trie<BITS, T> : 非負整数の多重集合。xor と k 番目が速い
  *
- *   0 以上 2^BITS 未満の整数を貯める。同じ値を何個入れてもよい。
- *   すべての要素に xor を掛ける操作が O(1) でできるのが特徴で、
- *   「xor したときの最小・最大」を求める問題で使う。
+ *   insert(x, d)          x を d 個追加（d = -1 で 1 個削除）   O(BITS)
+ *   erase(x)              insert(x, -1)。無い値を消さないこと
+ *   count(x) / contains(x)                                      O(BITS)
+ *   kth(k, flip)          各要素を flip と xor した値の k 番目   O(BITS)
+ *   min_value(flip)       kth(0, flip)
+ *   max_value(flip)       kth(size() - 1, flip)
+ *   count_less(ub, flip)  flip と xor した値が ub 未満の個数     O(BITS)
+ *   xor_all(v)            すべての要素を v と xor する           O(1)
+ *   size() / empty() / clear() / node_count()
+ *
  *   BITS は扱うビット数（木の深さ）。子は常に 2 本なので分岐数ではない。
- *   既定は BITS = 30（10^9 まで）。10^18 まで使うなら binary_trie<60>。
- *
- *   insert(x)       x を 1 個足す
- *   insert(x, d)    x を d 個追加する（d = -1 で 1 個削除）
- *   erase(x)        insert(x, -1) と同じ。無い値を消してはいけない
- *   count(x)        x が何個入っているか
- *   contains(x)     count(x) > 0
- *   size()          要素数（重複を含む）
- *   empty() / clear()
- *
- *   kth(k, flip)        各要素を flip と xor した値のうち、小さいほうから k 番目
- *   min_value(flip)     kth(0, flip)
- *   max_value(flip)     kth(size() - 1, flip)
- *   count_less(ub, flip) flip と xor した値が ub 未満になる要素の個数
- *
- *   flip は省略でき、既定は 0（xor しない）。この 4 つは状態を変えないので
- *   const な binary_trie に対しても呼べる。
- *
- *   xor_all(v)      すべての要素を v と xor する。O(1)。こちらは状態が残る
- *
- *   計算量は insert / erase / count / kth / count_less が O(BITS)、
- *   xor_all が O(1)。ノード数は最大「入れた個数 × BITS + 1」。
- *
- *   削除した値のノードは残る。減らしたいときは clear() で作り直す。
- *   負の数は入れられない。入れたいときは下駄を履かせる。
+ *   既定は 30（10^9 まで）。10^18 なら binary_trie<60>。負の数は不可。
+ *   flip は省略でき、既定は 0。xor_all 以外は状態を変えないので const で呼べる。
+ *   削除してもノードは残る。減らすなら clear()。
  *
  * 使用例:
  *   binary_trie<> t;
  *   fore(a, A) t.insert(a);
- *   t.min_value();             // 最小値
  *   t.max_value(x);            // x と xor して最大になる値
  *   t.kth(2, x);               // x と xor した値のうち 3 番目に小さいもの
- *   t.count_less(10);          // 10 未満の個数
- *   t.count_less(10, x);       // x と xor した値が 10 未満の個数
  *
  *   // 数列の中から xor が最大になる 2 数を選ぶ
  *   binary_trie<> s;
@@ -52,11 +34,9 @@
  *     s.insert(a);
  *   }
  *
- *   t.xor_all(v);              // 以降ずっと v と xor された状態になる
- *   t.min_value();             // その状態での最小値
- *
  * verify:
  *   (未 verify)
+ *   予定: https://judge.yosupo.jp/problem/set_xor_min
  */
 template <int BITS = 30, class T = long long>
 struct binary_trie {

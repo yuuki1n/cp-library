@@ -24,48 +24,30 @@ constexpr W default_inf() {
 }  // namespace dijkstra_internal
 
 /*
- * dijkstra : 単一始点最短路（重みが非負のとき）
+ * dijkstra : 単一始点最短路（重みが非負のとき）。O((n + m) log n)
  *
- *   O((n + m) log n)。負の重みがあると正しく求まらない。
- *   graph.hpp の graph を渡す前提だが、include はしない。次を満たす型なら
- *   何でも渡せる。
- *     - 距離の型を weight_type という名前で公開している
- *     - size() が頂点数を返す
- *     - g[u] が u から出る辺の範囲を返し、辺が to / w / id を持つ
+ *   dijkstra(g, s)        始点 s から
+ *   dijkstra(g, src)      多始点（src は vector<int>）
+ *   dijkstra(g, s, inf)   未到達を表す値を指定する
  *
- *   dijkstra(g, s)           始点 s から
- *   dijkstra(g, src)         多始点（src は vector<int>）。どれかからの最短
- *   dijkstra(g, s, inf)      未到達を表す値を指定する
+ *   dist[v]        最短距離。未到達なら inf
+ *   reachable(v)   dist[v] < inf
+ *   par[v]         最短路木での直前の頂点。始点と未到達は -1
+ *   par_edge[v]    そこへ来るのに使った辺番号。始点と未到達は -1
+ *   path(t)        始点から t への頂点列。未到達なら空
  *
- *   dist[v]                  s から v への最短距離。未到達なら inf
- *   reachable(v)             到達できるか
- *   par[v]                   最短路木での直前の頂点。始点と未到達は -1
- *   par_edge[v]              そこへ来るのに使った辺番号。始点と未到達は -1
- *   path(t)                  s から t への頂点列。未到達なら空
- *
- *   inf の既定はテンプレートの LINF と同じ 2002003004005006007。W がこれを
- *   入れられない型（int など）では numeric_limits<W>::max() / 2 に落ちる。
- *   距離の総和が inf を超える問題では明示的に渡すこと。
- *
- *   reachable(v) の中身は dist[v] < inf。inf に -1 のような小さい値を渡すと
- *   常に false になるので、そういう使い方をするなら reachable は使わない。
+ *   負の重みがあると正しく求まらない。
+ *   graph.hpp の graph を渡す前提だが include はしない。weight_type と
+ *   size() と g[u]（辺が to / w / id を持つ）があれば何でも渡せる。
+ *   inf の既定はテンプレートの LINF と同じ 2002003004005006007。入らない型
+ *   （int など）では numeric_limits<W>::max() / 2 に落ちる。
  *
  * 使用例:
- *   graph<ll> g(N);
- *   rep(M) { INT(u, v); LL(w); g.add_edge(--u, --v, w); }
- *
  *   dijkstra d(g, 0);
- *   print(d.dist[N - 1]);
- *   if (d.reachable(N - 1)) print(d.path(N - 1));   // 頂点列
- *   else print(-1);
+ *   print(d.reachable(N - 1) ? d.dist[N - 1] : -1);
+ *   print(d.path(N - 1));
  *
- *   // 多始点。複数のマスから同時に広げる
- *   dijkstra d2(g, vi{0, 3, 5});
- *
- *   // 通った辺の番号を並べる
- *   vi es;
- *   for (int v = t; d.par[v] != -1; v = d.par[v]) es.pb(d.par_edge[v]);
- *   rg::reverse(es);
+ *   dijkstra d2(g, vi{0, 3, 5});     // 多始点
  *
  * verify:
  *   (未 verify)

@@ -4,43 +4,32 @@
 #include <vector>
 
 /*
- * monoid_dsu : 連結成分ごとに可換モノイドの総積を持つ dsu
+ * monoid_dsu<V, Op> : 連結成分ごとに可換モノイドの総積を持つ dsu
  *
- *   atcoder::dsu を使って、成分ごとの畳み込みを追加したもの。併合のたびに
- *   2 つの成分の値を合成するので、prod(x) は O(1)（leader の分だけ α(n)）。
- *   op は可換かつ結合的であること。どちらの成分が根になるかは
- *   union by size 任せで、合成順を制御できないため。
+ *   monoid_dsu(v)           頂点 i の初期値を v[i] とする
+ *   monoid_dsu(n, e)        すべて e で初期化
+ *   merge(a, b)             併合する。実際に併合したら true
+ *   prod(x)                 x の属する成分の総積
+ *   apply(x, val)           x の属する成分の値に val を合成する
+ *   clear(v) / clear(n, e)  構築直後に戻す（値は入れ直す）
+ *   leader / same / size / groups は atcoder::dsu のものをそのまま使える
  *
- *   monoid_dsu(v)        頂点 i の初期値を v[i] とする
- *   monoid_dsu(n, e)     頂点 0 .. n-1 の初期値をすべて e とする
- *   merge(a, b)         併合する。実際に併合したら true
- *   prod(x)             x の属する成分の総積
- *   apply(x, val)       x の属する成分の値に val を合成する
- *
- *   leader / same / size / groups は atcoder::dsu のものがそのまま使える。
+ *   op は可換かつ結合的であること。どちらが根になるかは union by size 任せで
+ *   合成順を制御できないため。
  *   継承は private。公開継承だと atcoder::dsu& 経由で基底の merge を呼べて
  *   しまい、値を更新しないまま併合されるため。
  *
- *   clear(v) / clear(n, e)  構築直後の状態に戻す（値は入れ直す）
- *
  * 使用例:
- *   // 成分ごとの頂点の重みの合計
- *   monoid_dsu<long long> uf(W);            // W は vector<long long>
+ *   monoid_dsu<ll> uf(W);                   // 成分ごとの重みの合計
  *   uf.merge(0, 1);
  *   print(uf.prod(0));
  *
- *   // 成分ごとの辺の本数（自己ループ・多重辺も数える）
- *   monoid_dsu<long long> es(N, 0);
+ *   monoid_dsu<ll> es(N, 0);                // 成分ごとの辺の本数
  *   fore(e, edges) { es.merge(e.fi, e.se); es.apply(e.fi, 1); }
- *   // 辺の本数 == 頂点数 なら、その成分はちょうど 1 つ閉路を持つ
- *
- *   // 成分ごとの最大値
- *   monoid_dsu<long long, decltype([](auto a, auto b) { return max(a, b); })> mx(A);
  *
  * verify:
  *   (未 verify)
  *   予定: https://judge.yosupo.jp/problem/dynamic_graph_vertex_add_component_sum
- *         （rollback_dsu と組み合わせて Offline Dynamic Connectivity で）
  */
 template <class V, class Op = std::plus<V>>
 struct monoid_dsu : private atcoder::dsu {

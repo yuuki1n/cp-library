@@ -3,41 +3,30 @@
 #include <vector>
 
 /*
- * dynamic_dsu : 頂点を後から足せる dsu
+ * dynamic_dsu<K, Map> : 頂点を後から足せる dsu
  *
- *   頂点番号が 0 .. n-1 でない（座標、文字列、大きすぎる値など）ときに使う。
- *   出てきたキーを内部で 0 から順に振り直し、実体はふつうの配列で持つ。
- *   キーの引き当てにだけ Map の分の時間がかかり、あとはならし O(alpha(n))。
- *   既定の std::map なら 1 操作 O(log n)。比較できる型ならそのまま使えるので、
- *   pair や tuple や string をキーにできる。ハッシュを用意できるなら
- *   dynamic_dsu<K, unordered_map<K, int>> にすると速い。
+ *   add(x)          頂点 x を足す。新しく足したら true
+ *   merge(a, b)     知らないキーは自動で足す。実際に併合したら true
+ *   leader(x)       成分の代表キー
+ *   same(a, b) / size(x)
+ *   group_count()   連結成分の個数
+ *   vertex_count()  今までに足した頂点の個数
+ *   group(x)        同じ成分のキー         O(|成分| log n)
+ *   id(x)           内部番号（無ければ足す）
+ *   clear()         構築直後に戻す（頂点もすべて捨てる）
  *
- *   add(x)        頂点 x を足す。新しく足したら true
- *   merge(a, b)   併合する。知らないキーは自動で足す。実際に併合したら true
- *   leader(x)     x の属する成分の代表キー
- *   same(a, b)    同じ成分か
- *   size(x)       x の属する成分の大きさ
- *   group_count()       連結成分の個数
- *   vertex_count()    今までに足した頂点の個数
- *   group(x)      x と同じ成分のキー。O(|成分| log n)
- *   id(x)         x に振られた内部番号（無ければ足す）
- *   clear()       構築直後の状態に戻す（頂点もすべて捨てる）
- *
- *   atcoder::dsu は継承していない。dsu は構築時に頂点数が決まる作りで、
- *   後から増やせないため。
+ *   頂点番号が 0 .. n-1 でない（座標・文字列・大きすぎる値）ときに使う。
+ *   キーを 0 から順に振り直し、実体は配列で持つ。キーの引き当てだけ Map の
+ *   時間がかかり、あとはならし O(a(n))。既定の std::map なら 1 操作 O(log n)
+ *   で、pair / tuple / string をそのまま使える。ハッシュがあるなら
+ *   dynamic_dsu<K, unordered_map<K, int>> が速い。
+ *   atcoder::dsu は継承していない。構築時に頂点数が決まる作りのため。
  *
  * 使用例:
  *   dynamic_dsu<pair<int, int>> uf;
  *   uf.merge({0, 0}, {0, 1});
- *   uf.merge({5, 5}, {0, 0});
- *   print(uf.vertex_count(), uf.group_count());   // 3 1
- *   print(uf.size({0, 1}));            // 3
- *   fore(k, uf.group({0, 0})) print(k);
- *
- *   // 座標圧縮の代わりに使う
- *   dynamic_dsu<long long> uf;
- *   rep(M) { LL(a, b); uf.merge(a, b); }
  *   print(uf.vertex_count(), uf.group_count());
+ *   fore(k, uf.group({0, 0})) print(k);
  *
  * verify:
  *   (未 verify)

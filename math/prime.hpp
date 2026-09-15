@@ -7,30 +7,25 @@
 /*
  * 素数判定・素因数分解・約数列挙
  *
- *   n が小さいときは SPF（最小素因数）テーブル、大きいときは
- *   Miller-Rabin + Pollard の ρ に切り替える。
- *
- *     n <= SPF_MAX (10^6)   SPF テーブルを引く      O(log n)
- *     n >  SPF_MAX          Pollard の ρ            O(n^(1/4)) 程度
- *
- *   テーブルは初回に必要になった時点で構築してキャッシュする。使わなければ
- *   確保もされない。サイズは 2 の冪で必要なぶんだけ拡張する（上限 SPF_MAX、
- *   全体で約 2 MB / 構築 1 ms）。Pollard が分割した部分因数も同じ判定を通る
- *   ので、10^18 の数が 10^6 以下に割れた時点で即座に解決される。
- *
  *   is_prime(n)   決定的 Miller-Rabin。n < 2^64 で確実
  *   factorize(n)  vector<pair<long long, int>> を素数の昇順で返す。n <= 1 は空
  *   divisors(n)   約数を昇順で全列挙。n <= 0 は空。n = 1 なら {1}
  *
+ *   n <= 10^6 は SPF（最小素因数）テーブルで O(log n)、超えたら
+ *   Miller-Rabin + Pollard の rho で O(n^(1/4)) 程度。
+ *   テーブルは必要になった時点で必要なぶんだけ作ってキャッシュする
+ *   （上限まで作ると約 2 MB / 1 ms）。使わなければ確保もされない。
  *   __int128 を使うので 64bit 環境専用。スレッドセーフではない。
  *
  * 使用例:
  *   for (auto [p, e] : factorize(360)) print(p, e);   // 2 3 / 3 2 / 5 1
- *   auto ds = divisors(360);                          // 1 2 3 4 5 6 8 ...
+ *   auto ds = divisors(360);
  *   if (is_prime(1000000007)) ...
  *
  * verify:
  *   (未 verify)
+ *   予定: https://judge.yosupo.jp/problem/factorize
+ *         https://judge.yosupo.jp/problem/enumerate_primes
  */
 
 namespace prime_internal {

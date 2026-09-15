@@ -4,36 +4,19 @@
 /*
  * graph<W> : グラフの入れ物（隣接リスト）
  *
- *   辺に重み W を持つ。無向グラフは add_edge が往復ぶんを入れる。往復には
- *   同じ辺番号が付くので、辺ごとの情報を配列で持ちたいときに使える。
+ *   graph(n, directed)  頂点 0 .. n-1。directed の既定は false
+ *   add_edge(u, v, w)   辺番号（0 から順）を返す。w の既定は 1
+ *   g[u]                u から出る辺。辺は { id, from, to, w }
+ *   size() / edge_count() / is_directed() / clear()
  *
- *   graph(n, directed)  頂点 0 .. n-1。directed の既定は false（無向）
- *   add_edge(u, v, w)   辺を足す。辺番号（0 から順）を返す。w の既定は 1
- *   size()              頂点数
- *   edge_count()        add_edge を呼んだ回数
- *   g[u]                u から出る辺の一覧（const 参照）
- *   clear()             辺をすべて捨てる（頂点数はそのまま）
- *
- *   辺は { id, from, to, w }。
- *   有向グラフの「入ってくる辺」は持たない。要るときは向きを逆にした
- *   グラフをもう 1 つ作る。
- *
- *   無向グラフの自己ループは g[u] に 2 本入る（edge_count() は 1 のまま）。
- *   自己ループが次数に 2 を足すという慣習に合わせてある。g[u].size() を
- *   次数として使うときは意識すること。
+ *   無向は往復ぶんを入れる（往復で辺番号は同じ）。自己ループは g[u] に 2 本
+ *   入る（次数の慣習に合わせた）。
+ *   有向の「入ってくる辺」は持たない。要るときは逆向きのグラフを別に作る。
  *
  * 使用例:
- *   INT(N, M);
  *   graph<ll> g(N);
- *   rep(M) {
- *     INT(u, v);
- *     LL(w);
- *     g.add_edge(--u, --v, w);
- *   }
+ *   rep(M) { INT0(u, v); LL(w); g.add_edge(u, v, w); }
  *   fore(e, g[0]) print(e.to, e.w);
- *
- *   graph<ll> h(N, true);   // 有向
- *   graph<int> t(N);        // 重みなし。w は 1 が入る
  *
  * verify:
  *   (未 verify)

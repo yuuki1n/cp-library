@@ -4,29 +4,20 @@
 /*
  * cumsum<T> : 1 次元累積和
  *
- *   内部は s[i] = 先頭 i 個の和（s[0] = 0）。要素数は s.size() - 1。
+ *   cumsum(v)        vector から構築           O(N)
+ *   cumsum(n)        長さ n ぶん確保した空     O(1)
+ *   cumsum()         空
+ *   push_back(x)     末尾に追加。cs += x も可  ならし O(1)
+ *   cs(l, r)         [l, r) の和               O(1)
+ *   cs(r)            [0, r) の和
+ *   all_sum() / at(i) / size() / empty() / clear() / reserve(n)
  *
- *   構築        O(N)   vector から
- *               O(1)   空 / 長さ指定（容量だけ確保）
- *   push_back   ならし O(1)
- *   区間和      O(1)
- *
- *   要素型が整数なら T をそのまま使うので、int の vector を渡しても
- *   cumsum<long long> なら long long で累積される。
+ *   累積は T で行う。vector<int> を渡しても cumsum<long long> なら
+ *   long long で足す。範囲は検査しない。
  *
  * 使用例:
- *   cumsum<long long> cs(A);   // vector<int> / vector<long long> から
- *   cumsum<long long> cs(N);   // 長さ N ぶんの容量を確保した空の状態
- *   cumsum<long long> cs;      // 空
- *
- *   cs.push_back(x);           // 末尾に追加
- *   cs += x;                   // 同上
- *
- *   cs(l, r);                  // [l, r) の和
- *   cs(r);                     // [0, r) の和
- *   cs.all_sum();              // 全体の和
- *   cs.at(i);                  // 元の a[i]
- *   cs.size();  cs.empty();  cs.clear();
+ *   cumsum<long long> cs(A);
+ *   cs(l, r);
  *
  * verify:
  *   (未 verify)
@@ -64,7 +55,7 @@ struct cumsum {
 
   T operator()(long long l, long long r) const {
     return s[r] - s[l];
-  }                                                 // [l, r)
+  }  // [l, r)
   T operator()(long long r) const { return s[r]; }  // [0, r)
   T all_sum() const { return s.back(); }
   T at(long long i) const { return s[i + 1] - s[i]; }  // 元の a[i]

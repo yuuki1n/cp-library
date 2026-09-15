@@ -5,48 +5,35 @@
 #include <vector>
 
 /*
- * relational_dsu : 重み付き（ポテンシャル付き）dsu
+ * relational_dsu<F, Op, Inv> : 重み付き（ポテンシャル付き）dsu。ならし O(a(n))
  *
- *   「v の値 - u の値 は f」という形の制約を入れていき、矛盾を検出しつつ
- *   任意の 2 頂点の差を答える。差の型 F は群であること。
- *     op(a, b)  a の後に b をつないだ関係
- *     inv(a)    a の逆
- *     e         単位元
- *   既定は F = long long, op = 足し算, inv = 符号反転 なので、ふつうの
- *   「差の制約」なら relational_dsu<> uf(N); でよい。
- *   計算量はならし O(alpha(n))。
+ *   「v の値 - u の値 は f」という制約を入れ、矛盾を検出しつつ差を答える。
  *
- *   relational_dsu(n, e, op, inv)  頂点 0 .. n-1
- *   merge(u, v, f)   diff(u, v) == f という制約を入れる。矛盾したら false
- *   consistent(u,v,f) 制約を入れずに矛盾しないかだけ調べる
- *   diff(u, v)       v の値 - u の値。same(u, v) が前提
- *   leader / same / size / group_count
- *   clear()          構築直後の状態に戻す（大きさはそのまま）
+ *   relational_dsu(n, e, op, inv)
+ *   merge(u, v, f)      diff(u, v) == f を入れる。矛盾したら false
+ *   consistent(u, v, f) 入れずに矛盾しないかだけ調べる
+ *   diff(u, v)          v の値 - u の値。same(u, v) が前提
+ *   leader / same / size / group_count / clear
  *
+ *   F は群であること（op は結合、inv は逆元、e は単位元）。既定は
+ *   long long / 足し算 / 符号反転 なので、ふつうの差の制約なら
+ *   relational_dsu<> uf(N); でよい。
  *   atcoder::dsu は継承していない。経路圧縮のたびに関係を合成し直す必要が
- *   あるが、dsu の leader は非仮想で parent_or_size も private なので、
- *   圧縮に割り込めないため。
+ *   あるが、dsu の leader は非仮想で parent_or_size も private のため。
  *
  * 使用例:
- *   // A[v] - A[u] = w の制約が M 個。矛盾があるか
  *   relational_dsu<> uf(N);
- *   rep(M) {
- *     INT(u, v); LL(w);
- *     if (!uf.merge(--u, --v, w)) { print("No"); return; }
- *   }
- *   // 同じ成分なら差が確定する
+ *   rep(M) { INT0(u, v); LL(w); if (!uf.merge(u, v, w)) { print("No"); return; } }
  *   if (uf.same(0, 1)) print(uf.diff(0, 1));
  *
- *   // Z/2Z（二部グラフ判定）。xor は自分自身が逆元なので inv は恒等でよい
+ *   // 二部グラフ判定。xor は自分自身が逆元なので inv は恒等
  *   relational_dsu<int, bit_xor<int>, identity> uf(N);
- *   fore(e, edges) if (!uf.merge(e.fi, e.se, 1)) { print("No"); return; }
  *
  * verify:
  *   (未 verify)
  *   予定: https://judge.yosupo.jp/problem/unionfind_with_potential
  *         https://judge.yosupo.jp/problem/unionfind_with_potential_non_commutative_group
- *         後者は非可換な群での検証になる（現状のテストは plus と bit_xor だけで
- *         どちらも可換なので、合成順の誤りを検出できていない）
+ *         後者は非可換な群での検証。今のテストは可換な演算しか使っていない
  */
 template <class F = long long, class Op = std::plus<F>,
           class Inv = std::negate<F>>

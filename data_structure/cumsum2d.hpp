@@ -4,16 +4,16 @@
 /*
  * cumsum2d<T> : 2 次元累積和
  *
- *   構築    O(HW)
- *   矩形和  O(1)
+ *   cumsum2d(g)           vector<vector<U>> から構築   O(HW)
+ *   cs(i1, j1, i2, j2)    [i1, i2) x [j1, j2) の和     O(1)
+ *   cs(i2, j2)            [0, i2) x [0, j2) の和
+ *   all_sum() / h() / w() / clear()
+ *
+ *   範囲は検査しない。
  *
  * 使用例:
- *   cumsum2d<long long> cs(G);        // vector<vector<int>> など
- *   cs(i1, j1, i2, j2);               // [i1, i2) x [j1, j2) の和
- *   cs(i2, j2);                       // [0, i2) x [0, j2) の和
- *   cs.all_sum();
- *   cs.h();  cs.w();
- *   cs.clear();                      // 空の状態に戻す
+ *   cumsum2d<long long> cs(G);
+ *   cs(i1, j1, i2, j2);
  *
  * verify:
  *   (未 verify)
