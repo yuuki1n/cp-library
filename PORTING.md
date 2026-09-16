@@ -28,7 +28,13 @@ C++ に移し替えていく。このファイルはコミット・プッシュ�
 | `dataStructure/Trie` | `string/trie.hpp` | 未 | 文字列のトライ。接頭辞の本数を数える |
 | `dataStructure/BinaryTrie` | `data_structure/binary_trie.hpp` | 未 | xor 最小 / k 番目。xor_all は O(1) |
 
-Java に無い追加分: `util/inversion_count.hpp`（転倒数、マージソート版）。これも未 verify。
+Java に無い追加分（いずれも未 verify）:
+
+| C++ | 内容 |
+|---|---|
+| `util/inversion_count.hpp` | 転倒数。マージソート版 |
+| `math/matrix.hpp` | 行列。`pow` / `det` / `rank` / `inv` / `solve` |
+| `math/maxplus_matrix.hpp` | (max, +) 半環の行列。k 辺での最長路など |
 
 ---
 
@@ -113,7 +119,7 @@ Java に無い追加分: `util/inversion_count.hpp`（転倒数、マージソ�
 
 ## verify 状況
 
-**0 / 13 が verify 済み。** `test/` のテストは総当たりとの突き合わせなので、
+**0 / 15 が verify 済み。** `test/` のテストは総当たりとの突き合わせなので、
 実装の正しさはある程度見ているが、公開ジャッジは 1 つも通していない。
 
 | ライブラリ | 状態 | verify 先 |
@@ -129,6 +135,8 @@ Java に無い追加分: `util/inversion_count.hpp`（転倒数、マージソ�
 | `dynamic_dsu` | 未 | 未定 |
 | `trie` | 未 | 未定。[aho_corasick](https://judge.yosupo.jp/problem/aho_corasick) は別物（AC 自動機） |
 | `binary_trie` | 未 | [set_xor_min](https://judge.yosupo.jp/problem/set_xor_min) |
+| `matrix` | 未 | [matrix_product](https://judge.yosupo.jp/problem/matrix_product) / [pow_of_matrix](https://judge.yosupo.jp/problem/pow_of_matrix) / [matrix_det](https://judge.yosupo.jp/problem/matrix_det) / [matrix_rank](https://judge.yosupo.jp/problem/matrix_rank) / [inverse_matrix](https://judge.yosupo.jp/problem/inverse_matrix) / [system_of_linear_equations](https://judge.yosupo.jp/problem/system_of_linear_equations) |
+| `maxplus_matrix` | 未 | 未定 |
 | `graph` | 未 | `dijkstra` と一緒に検証される |
 | `dijkstra` | 未 | [shortest_path](https://judge.yosupo.jp/problem/shortest_path) |
 
