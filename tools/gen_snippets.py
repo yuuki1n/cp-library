@@ -75,6 +75,20 @@ def summary(src):
     return ''
 
 
+def resolve(stem, chain=()):
+    """stem に必要なヘッダを依存順に並べる。stem 自身が最後に来る。"""
+    if stem in chain:
+        sys.exit('DEPS が循環している: %s' % ' -> '.join(chain + (stem,)))
+    order = []
+    for d in DEPS.get(stem, []):
+        for x in resolve(d, chain + (stem,)):
+            if x not in order:
+                order.append(x)
+    if stem not in order:
+        order.append(stem)
+    return order
+
+
 def escape(line):
     r"""VS Code のスニペット本文では \ と $ が特殊。} はそのままで通る。"""
     return line.replace('\\', '\\\\').replace('$', '\\$')
@@ -113,8 +127,9 @@ def main():
         rel, src = headers[stem]
         desc = summary(strip_includes(src))
 
+        need = resolve(stem)
         body = []
-        for name in DEPS.get(stem, []) + [stem]:
+        for name in need:
             part = strip_includes(headers[name][1])
             if args.no_doc:
                 part = strip_doc(part)
@@ -128,7 +143,11 @@ def main():
             'body': body,
             'description': '%s  [%s]' % (desc or stem, rel),
         }
-        rows.append((stem, len(body), rel, DEPS.get(stem, [])))
+        rows.append((stem, len(body), rel, need[:-1]))
+
+    if not rows:
+        print('.hpp が 1 つも見つからない: %s' % ROOT)
+        return
 
     text = json.dumps(snippets, ensure_ascii=False, indent=2) + '\n'
 
@@ -142,7 +161,9 @@ def main():
     if args.dry_run:
         print('--dry-run のため書き込みはしない')
         return
-    os.makedirs(os.path.dirname(args.out), exist_ok=True)
+    out_dir = os.path.dirname(args.out)  # ファイル名だけなら '' になる
+    if out_dir:
+        os.makedirs(out_dir, exist_ok=True)
     io.open(args.out, 'w', encoding='utf-8', newline='\n').write(text)
     print('-> %s' % args.out)
 
