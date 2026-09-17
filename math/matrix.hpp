@@ -39,8 +39,7 @@
  *         https://judge.yosupo.jp/problem/inverse_matrix
  *         https://judge.yosupo.jp/problem/system_of_linear_equations
  */
-template <class T>
-struct matrix {
+template <class T> struct matrix {
   int h, w;
   std::vector<std::vector<T>> a;
 

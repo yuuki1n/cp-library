@@ -1,13 +1,13 @@
 // math/prime.hpp の検証。総当たり・篩と突き合わせる。
 //   g++ -std=gnu++20 -O2 -Wall -Wextra -I.. prime_test.cpp -o prime_test
+#include "../math/prime.hpp"
+
 #include <algorithm>
 #include <chrono>
 #include <cstdio>
 #include <random>
 #include <utility>
 #include <vector>
-
-#include "../math/prime.hpp"
 
 using ll = long long;
 using namespace std;

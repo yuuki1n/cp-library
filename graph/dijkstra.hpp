@@ -10,8 +10,7 @@ namespace dijkstra_internal {
 // 未到達を表す既定値。テンプレートの LINF と同じ値にしてある。
 // W に入りきらない型（int など）では max() / 2 に落とす。
 constexpr long long LINF_ = 2002003004005006007LL;
-template <class W>
-constexpr W default_inf() {
+template <class W> constexpr W default_inf() {
   if constexpr (std::is_integral_v<W>) {
     if constexpr (std::numeric_limits<W>::max() / 2 >= LINF_)
       return W(LINF_);
@@ -53,8 +52,7 @@ constexpr W default_inf() {
  *   (未 verify)
  *   予定: https://judge.yosupo.jp/problem/shortest_path
  */
-template <class G>
-struct dijkstra {
+template <class G> struct dijkstra {
   using W = typename G::weight_type;
 
   std::vector<W> dist;

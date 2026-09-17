@@ -14,8 +14,7 @@
  * verify:
  *   (未 verify)
  */
-template <class T>
-long long inversion_count(std::vector<T> a) {
+template <class T> long long inversion_count(std::vector<T> a) {
   std::size_t n = a.size();
   if (n < 2) return 0;
   std::vector<T> buf(n);

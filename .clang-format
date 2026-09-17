@@ -2,3 +2,7 @@ BasedOnStyle: Google
 # 日本語コメントは 1 文字 3 バイトのため 80 桁判定が早く効き、
 # 折り返しでドキュメントが崩れる。再折り返しを止める。
 ReflowComments: false
+
+# template <class T> を関数・クラス宣言と同じ行に保つ。
+# 既定（Google）だと 1 行に収まる短い関数まで 3 行に割られるため。
+AlwaysBreakTemplateDeclarations: No

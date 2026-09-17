@@ -31,8 +31,7 @@
  * verify:
  *   (未 verify)
  */
-template <class K, class Map = std::map<K, int>>
-struct dynamic_dsu {
+template <class K, class Map = std::map<K, int>> struct dynamic_dsu {
  private:
   Map idx;               // キー -> 内部番号
   std::vector<K> key;    // 内部番号 -> キー

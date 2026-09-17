@@ -31,8 +31,8 @@
  *   (未 verify)
  *   予定: https://judge.yosupo.jp/problem/dynamic_graph_vertex_add_component_sum
  */
-template <class V, class Op = std::plus<V>>
-struct monoid_dsu : private atcoder::dsu {
+template <class V, class Op = std::plus<V>> struct monoid_dsu
+    : private atcoder::dsu {
  private:
   std::vector<V> val;  // 根に対してのみ意味を持つ
   Op op;

@@ -38,8 +38,7 @@
  * verify:
  *   (未 verify)
  */
-template <int SIGMA = 26, char OFFSET = 'a'>
-struct trie {
+template <int SIGMA = 26, char OFFSET = 'a'> struct trie {
  private:
   struct node {
     std::array<int, std::size_t(SIGMA)> ch;  // SIGMA は int なので明示的に直す

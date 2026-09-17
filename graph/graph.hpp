@@ -21,8 +21,7 @@
  * verify:
  *   (未 verify)
  */
-template <class W = long long>
-struct graph {
+template <class W = long long> struct graph {
   using weight_type = W;
 
   struct edge {

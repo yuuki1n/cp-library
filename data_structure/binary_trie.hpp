@@ -38,8 +38,7 @@
  *   (未 verify)
  *   予定: https://judge.yosupo.jp/problem/set_xor_min
  */
-template <int BITS = 30, class T = long long>
-struct binary_trie {
+template <int BITS = 30, class T = long long> struct binary_trie {
  private:
   std::vector<std::array<int, 2>> ch;
   std::vector<int> sz;

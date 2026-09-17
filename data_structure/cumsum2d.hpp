@@ -18,14 +18,12 @@
  * verify:
  *   (未 verify)
  */
-template <class T = long long>
-struct cumsum2d {
+template <class T = long long> struct cumsum2d {
   std::vector<std::vector<T>> s;  // s[i][j] = 左上 i x j の和
 
   cumsum2d() : s(1, std::vector<T>(1, T())) {}
 
-  template <class U>
-  explicit cumsum2d(const std::vector<std::vector<U>>& a) {
+  template <class U> explicit cumsum2d(const std::vector<std::vector<U>>& a) {
     std::size_t h = a.size(), w = h == 0 ? 0 : a[0].size();
     s.assign(h + 1, std::vector<T>(w + 1, T()));
     for (std::size_t i = 0; i < h; i++)

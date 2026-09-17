@@ -22,8 +22,7 @@
  * verify:
  *   (未 verify)
  */
-template <class T = long long>
-struct cumsum {
+template <class T = long long> struct cumsum {
   std::vector<T> s;  // s[i] = 先頭 i 個の和
 
   cumsum() { s.push_back(T()); }
@@ -34,8 +33,7 @@ struct cumsum {
     s.push_back(T());
   }
 
-  template <class U>
-  explicit cumsum(const std::vector<U>& a) {
+  template <class U> explicit cumsum(const std::vector<U>& a) {
     s.reserve(a.size() + 1);
     s.push_back(T());
     for (const U& x : a) s.push_back(s.back() + T(x));

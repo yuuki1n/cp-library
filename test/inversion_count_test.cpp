@@ -1,5 +1,7 @@
 // util/inversion_count.hpp の検証。総当たりと突き合わせる。
 //   g++ -std=gnu++20 -O2 -Wall -Wextra -I.. inversion_count_test.cpp -o inversion_count_test
+#include "../util/inversion_count.hpp"
+
 #include <algorithm>
 #include <chrono>
 #include <cstdio>
@@ -7,8 +9,6 @@
 #include <random>
 #include <string>
 #include <vector>
-
-#include "../util/inversion_count.hpp"
 
 using ll = long long;
 using namespace std;
@@ -21,8 +21,7 @@ void check(bool ok, const char* what) {
   }
 }
 
-template <class T>
-ll brute(const vector<T>& a) {
+template <class T> ll brute(const vector<T>& a) {
   ll c = 0;
   for (size_t i = 0; i < a.size(); i++)
     for (size_t j = i + 1; j < a.size(); j++)
