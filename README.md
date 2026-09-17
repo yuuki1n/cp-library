@@ -16,6 +16,7 @@ Java 版ライブラリからの移植状況は [PORTING.md](PORTING.md) を参�
 | `geometry/` | 幾何（点・線分・円、凸包 など） |
 | `util/` | 汎用ユーティリティ（座標圧縮、二分探索 など） |
 | `test/` | 検証用コード |
+| `tools/` | 補助スクリプト |
 
 ## 使い方
 
@@ -29,6 +30,23 @@ Java 版ライブラリからの移植状況は [PORTING.md](PORTING.md) を参�
 
 `std::` 修飾は付いたままで動くので、消さなくてよい。
 `#pragma once` は置いていないので落とす必要はない。
+
+## VS Code のスニペット
+
+`tools/gen_snippets.py` で、各ヘッダをそのまま挿入するスニペットを作る。
+
+```
+python tools/gen_snippets.py            # VS Code のユーザースニペットに書く
+python tools/gen_snippets.py --dry-run  # 書かずに一覧だけ出す
+python tools/gen_snippets.py --no-doc   # 説明コメントを落として貼る
+```
+
+エディタでは `cp_dijkstra` と打って候補から選ぶ（`cp` まで打てば一覧になる）。
+`#include` 行は落として挿入する。単体では足りないもの（`dijkstra` に対する
+`graph`）はスクリプト内の `DEPS` に書いてあり、依存ぶんも一緒に挿入される。
+
+**ライブラリを直したら実行し直す。** 生成物は VS Code 側に置かれるので
+このリポジトリには入らない。
 
 ## 実装の約束ごと
 
