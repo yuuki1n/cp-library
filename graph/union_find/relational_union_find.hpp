@@ -1,33 +1,35 @@
 #include <algorithm>
 #include <cassert>
 #include <functional>
+#include <numeric>
 #include <utility>
 #include <vector>
 
 /*
- * relational_dsu<F, Op, Inv> : 重み付き（ポテンシャル付き）dsu。ならし O(a(n))
+ * relational_union_find<F, Op, Inv> : 重み付き（ポテンシャル付き）
+ * Union-Find。ならし O(a(n))
  *
  *   「v の値 - u の値 は f」という制約を入れ、矛盾を検出しつつ差を答える。
  *
- *   relational_dsu(n, e, op, inv)
+ *   relational_union_find(n, e, op, inv)
  *   merge(u, v, f)      diff(u, v) == f を入れる。矛盾したら false
  *   consistent(u, v, f) 入れずに矛盾しないかだけ調べる
  *   diff(u, v)          v の値 - u の値。same(u, v) が前提
+ *   group(x)            x と同じ成分の頂点   O(a(n) + |成分|)
+ *   groups()            連結成分ごとの頂点   O(n)
  *   leader / same / size / group_count / clear
  *
  *   F は群であること（op は結合、inv は逆元、e は単位元）。既定は
  *   long long / 足し算 / 符号反転 なので、ふつうの差の制約なら
- *   relational_dsu<> uf(N); でよい。
- *   atcoder::dsu は継承していない。経路圧縮のたびに関係を合成し直す必要が
- *   あるが、dsu の leader は非仮想で parent_or_size も private のため。
+ *   relational_union_find<> uf(N); でよい。
  *
  * 使用例:
- *   relational_dsu<> uf(N);
+ *   relational_union_find<> uf(N);
  *   rep(M) { INT0(u, v); LL(w); if (!uf.merge(u, v, w)) { print("No"); return; } }
  *   if (uf.same(0, 1)) print(uf.diff(0, 1));
  *
  *   // 二部グラフ判定。xor は自分自身が逆元なので inv は恒等
- *   relational_dsu<int, bit_xor<int>, identity> uf(N);
+ *   relational_union_find<int, bit_xor<int>, identity> uf(N);
  *
  * verify:
  *   (未 verify)
@@ -37,24 +39,29 @@
  */
 template <class F = long long, class Op = std::plus<F>,
           class Inv = std::negate<F>>
-struct relational_dsu {
+struct relational_union_find {
  private:
   std::vector<int> dat;  // 負なら -(成分の大きさ)、非負なら親
   std::vector<F> rel;    // 根から自分への関係。根は必ず e
+  std::vector<int> nxt;  // 成分ごとの巡回リスト
   int num;
   F e;  // 単位元。clear で rel を戻すために持っておく
   Op op;
   Inv inv;
 
  public:
-  relational_dsu() : relational_dsu(0) {}
-  explicit relational_dsu(int n, F e_ = F(), Op op_ = Op(), Inv inv_ = Inv())
-      : dat(n, -1), rel(n, e_), num(n), e(e_), op(op_), inv(inv_) {}
+  relational_union_find() : relational_union_find(0) {}
+  explicit relational_union_find(int n, F e_ = F(), Op op_ = Op(),
+                                 Inv inv_ = Inv())
+      : dat(n, -1), rel(n, e_), nxt(n), num(n), e(e_), op(op_), inv(inv_) {
+    std::iota(nxt.begin(), nxt.end(), 0);
+  }
 
   // 構築直後の状態に戻す（大きさはそのまま）
   void clear() {
     std::fill(dat.begin(), dat.end(), -1);
     std::fill(rel.begin(), rel.end(), e);
+    std::iota(nxt.begin(), nxt.end(), 0);
     num = (int)dat.size();
   }
 
@@ -80,11 +87,31 @@ struct relational_dsu {
       std::swap(x, y);
       g = inv(g);
     }
+    std::swap(nxt[x], nxt[y]);  // 2 つの環の next を交換すると 1 つの環になる
     dat[x] += dat[y];
     dat[y] = x;
     rel[y] = g;
     num--;
     return true;
+  }
+
+  // x と同じ成分の頂点を返す（x 自身も含む）
+  std::vector<int> group(int x) {
+    int r = leader(x), n = -dat[r], c = r;
+    std::vector<int> ret;
+    ret.reserve(n);
+    for (int i = 0; i < n; i++) ret.push_back(c = nxt[c]);
+    return ret;
+  }
+
+  // 連結成分ごとの頂点。各成分の中は昇順。成分そのものの並び順は決めていない
+  std::vector<std::vector<int>> groups() {
+    int n = (int)dat.size();
+    std::vector<std::vector<int>> buf(n), ret;
+    for (int i = 0; i < n; i++) buf[leader(i)].push_back(i);
+    for (auto& g : buf)
+      if (!g.empty()) ret.push_back(std::move(g));
+    return ret;
   }
 
   // 制約を入れずに、矛盾しないかだけ調べる

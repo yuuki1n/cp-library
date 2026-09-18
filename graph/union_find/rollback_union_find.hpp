@@ -5,23 +5,25 @@
 #include <vector>
 
 /*
- * rollback_dsu : 併合を巻き戻せる dsu
+ * rollback_union_find : 併合を巻き戻せる Union-Find
  *
  *   merge(a, b)   併合する。実際に併合したら true          O(log n)
  *   undo()        直前の merge を 1 回取り消す              O(1)
  *   snapshot()    今までに呼んだ merge の回数
  *   rollback(t)   merge を t 回呼んだ時点まで戻す
- *   leader / same / size / group_count / group              O(log n)
+ *   group(x)      x と同じ成分の頂点     O(log n + |成分|)
+ *   groups()      連結成分ごとの頂点     O(n log n)
+ *   leader / same / size                                   O(log n)
+ *   group_count()                                          O(1)
  *   clear()       構築直後に戻す（履歴も捨てる）
  *
  *   経路圧縮をしない代わりに変更を記録する。union by size だけなので
  *   木の高さは O(log n)。辺を消す問題（Offline Dynamic Connectivity）で使う。
  *   併合しなかった merge も 1 回と数えるので merge と undo は 1 対 1 で対応する。
  *   履歴が空の undo は何もしない。
- *   atcoder::dsu は継承していない。leader が経路圧縮をしてしまうため。
  *
  * 使用例:
- *   rollback_dsu uf(N);
+ *   rollback_union_find uf(N);
  *   uf.merge(0, 1);
  *   int t = uf.snapshot();
  *   uf.merge(1, 2);
@@ -31,7 +33,7 @@
  *   (未 verify)
  *   予定: https://judge.yosupo.jp/problem/dynamic_graph_vertex_add_component_sum
  */
-struct rollback_dsu {
+struct rollback_union_find {
  private:
   std::vector<int> dat;  // 負なら -(成分の大きさ)、非負なら親
   std::vector<int> nxt;  // 成分ごとの巡回リスト
@@ -40,8 +42,8 @@ struct rollback_dsu {
   std::vector<std::array<int, 3>> hst;
 
  public:
-  rollback_dsu() : rollback_dsu(0) {}
-  explicit rollback_dsu(int n) : dat(n, -1), nxt(n), num(n) {
+  rollback_union_find() : rollback_union_find(0) {}
+  explicit rollback_union_find(int n) : dat(n, -1), nxt(n), num(n) {
     std::iota(nxt.begin(), nxt.end(), 0);
   }
 
@@ -103,6 +105,16 @@ struct rollback_dsu {
     std::vector<int> ret;
     ret.reserve(n);
     for (int i = 0; i < n; i++) ret.push_back(c = nxt[c]);
+    return ret;
+  }
+
+  // 連結成分ごとの頂点。各成分の中は昇順。成分そのものの並び順は決めていない
+  std::vector<std::vector<int>> groups() const {
+    int n = (int)dat.size();
+    std::vector<std::vector<int>> buf(n), ret;
+    for (int i = 0; i < n; i++) buf[leader(i)].push_back(i);
+    for (auto& g : buf)
+      if (!g.empty()) ret.push_back(std::move(g));
     return ret;
   }
 };

@@ -3,7 +3,7 @@
 #include <vector>
 
 /*
- * dynamic_dsu<K, Map> : 頂点を後から足せる dsu
+ * dynamic_union_find<K, Map> : 頂点を後から足せる Union-Find
  *
  *   add(x)          頂点 x を足す。新しく足したら true
  *   merge(a, b)     知らないキーは自動で足す。実際に併合したら true
@@ -11,7 +11,8 @@
  *   same(a, b) / size(x)
  *   group_count()   連結成分の個数
  *   vertex_count()  今までに足した頂点の個数
- *   group(x)        同じ成分のキー         O(|成分| log n)
+ *   group(x)        同じ成分のキー         O(log n + |成分|)
+ *   groups()        連結成分ごとのキー     O(n)
  *   id(x)           内部番号（無ければ足す）
  *   clear()         構築直後に戻す（頂点もすべて捨てる）
  *
@@ -19,11 +20,10 @@
  *   キーを 0 から順に振り直し、実体は配列で持つ。キーの引き当てだけ Map の
  *   時間がかかり、あとはならし O(a(n))。既定の std::map なら 1 操作 O(log n)
  *   で、pair / tuple / string をそのまま使える。ハッシュがあるなら
- *   dynamic_dsu<K, unordered_map<K, int>> が速い。
- *   atcoder::dsu は継承していない。構築時に頂点数が決まる作りのため。
+ *   dynamic_union_find<K, unordered_map<K, int>> が速い。
  *
  * 使用例:
- *   dynamic_dsu<pair<int, int>> uf;
+ *   dynamic_union_find<pair<int, int>> uf;
  *   uf.merge({0, 0}, {0, 1});
  *   print(uf.vertex_count(), uf.group_count());
  *   fore(k, uf.group({0, 0})) print(k);
@@ -31,7 +31,7 @@
  * verify:
  *   (未 verify)
  */
-template <class K, class Map = std::map<K, int>> struct dynamic_dsu {
+template <class K, class Map = std::map<K, int>> struct dynamic_union_find {
  private:
   Map idx;               // キー -> 内部番号
   std::vector<K> key;    // 内部番号 -> キー
@@ -102,6 +102,16 @@ template <class K, class Map = std::map<K, int>> struct dynamic_dsu {
     std::vector<K> ret;
     ret.reserve(n);
     for (int i = 0; i < n; i++) ret.push_back(key[c = nxt[c]]);
+    return ret;
+  }
+
+  // 連結成分ごとのキー。各成分の中は add した順。成分の並び順は決めていない
+  std::vector<std::vector<K>> groups() {
+    int n = (int)key.size();
+    std::vector<std::vector<K>> buf(n), ret;
+    for (int i = 0; i < n; i++) buf[root(i)].push_back(key[i]);
+    for (auto& g : buf)
+      if (!g.empty()) ret.push_back(std::move(g));
     return ret;
   }
 };

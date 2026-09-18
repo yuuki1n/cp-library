@@ -10,7 +10,7 @@ Java 版ライブラリからの移植状況は [PORTING.md](PORTING.md) を参�
 |---|---|
 | `data_structure/` | データ構造（セグメント木、BIT、累積和、区間集合 など） |
 | `graph/` | グラフ（BFS/DFS、ダイクストラ、SCC、最小全域木、最大流 など） |
-| `graph/dsu/` | Union-Find（素集合データ構造）の各種 |
+| `graph/union_find/` | Union-Find（素集合データ構造）の各種 |
 | `math/` | 数学（modint、組合せ、素数、行列 など） |
 | `string/` | 文字列（Z-algorithm、ローリングハッシュ、Suffix Array など） |
 | `geometry/` | 幾何（点・線分・円、凸包 など） |
@@ -64,9 +64,11 @@ python tools/gen_snippets.py --no-doc   # 説明コメントを落として貼�
   **設計の理由や背景はコメントに書かない**（コミットメッセージか会話に残す）。
   使用例は最小限。全メソッドを並べ直さない
 - **命名は ACL に合わせて `snake_case`**。型名も関数名もファイル名も。
-  `dsu` と `Dsu` が同じコードに並ぶのを避けるため。1 ファイル 1 データ構造なので、
+  `union_find` と `UnionFind` が同じコードに並ぶのを避けるため。1 ファイル 1 データ構造なので、
   **型名とファイル名は一致させる**（`segtree.hpp` の `segtree` と同じ形）
-- 名前が ACL とぶつかるときは修飾語を足す（`dsu` に対する `grouped_dsu` など）
+- 名前が ACL とぶつかるときは別の語を使う。ACL と同名の型を貼ると
+  `using namespace atcoder;` のせいで参照が曖昧になりコンパイルが通らない
+  （`atcoder::dsu` に対して `union_find`）
 - ACL に同じ役割のメソッドがあれば名前を借りる（`prod` / `apply` / `leader` / `merge` など）
 - テンプレート本体のマクロ（`rep` / `all` など）には依存しない
 
@@ -82,9 +84,9 @@ python tools/gen_snippets.py --no-doc   # 説明コメントを落として貼�
   （`cumsum(l, r)` は範囲を検査しない）
 - **引数からは判断できない「状態への誤操作」はガードする**。呼び出し側が状態を
   目で追うしかないものは無害化する
-  （`rollback_dsu::undo()` は履歴が空なら何もしない）
+  （`rollback_union_find::undo()` は履歴が空なら何もしない）
 - **事前条件は `assert` で書く**。AtCoder は `NDEBUG` を定義しないので本番でも効く
-  （`relational_dsu::diff(u, v)` は `same(u, v)` を要求する）
+  （`relational_union_find::diff(u, v)` は `same(u, v)` を要求する）
 
 `clear()` は**構築直後の状態に戻す**。可変長のものは空にし、大きさが固定のものは
 大きさを保ったまま初期状態に戻す。
