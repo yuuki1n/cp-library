@@ -15,7 +15,7 @@
  *
  * 使用例:
  *   graph<ll> g(N);
- *   rep(M) { INT0(u, v); LL(w); g.add_edge(u, v, w); }
+ *   rep(M) { INT(u, v); LL(w); g.add_edge(--u, --v, w); }
  *   fore(e, g[0]) print(e.to, e.w);
  *
  * verify:

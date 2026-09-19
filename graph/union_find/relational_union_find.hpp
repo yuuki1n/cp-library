@@ -25,7 +25,11 @@
  *
  * 使用例:
  *   relational_union_find<> uf(N);
- *   rep(M) { INT0(u, v); LL(w); if (!uf.merge(u, v, w)) { print("No"); return; } }
+ *   rep(M) {
+ *     INT(u, v);
+ *     LL(w);
+ *     if (!uf.merge(--u, --v, w)) { print("No"); return; }
+ *   }
  *   if (uf.same(0, 1)) print(uf.diff(0, 1));
  *
  *   // 二部グラフ判定。xor は自分自身が逆元なので inv は恒等

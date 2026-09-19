@@ -22,7 +22,7 @@
  *
  * 使用例:
  *   union_find uf(N);
- *   rep(M) { INT0(u, v); uf.merge(u, v); }
+ *   rep(M) { INT(u, v); uf.merge(--u, --v); }
  *   print(uf.group(0));
  *   fore(g, uf.groups()) print(g);
  *
