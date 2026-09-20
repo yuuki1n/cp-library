@@ -34,7 +34,29 @@ S op(S a, S b) {
   return r;
 }
 S e() { return S{}; }
-using tree = avl_segtree<S, op, e>;
+using tree = avl_segtree<S, op, e>;  // 作用なし（F 以降は既定）
+
+// 区間加算・区間和
+using F = ll;
+S mapping(F f, S x) {
+  x.sum += f * x.sz;
+  return x;
+}
+F composition(F f, F g) { return f + g; }
+F id() { return 0; }
+using ltree = avl_segtree<S, op, e, F, mapping, composition, id>;
+
+// 区間 affine（x -> a x + b）。非可換な作用で合成順を確かめる
+struct A {
+  ll a = 1, b = 0;
+};
+S map_affine(A f, S x) {
+  x.sum = f.a * x.sum + f.b * x.sz;
+  return x;
+}
+A comp_affine(A f, A g) { return A{f.a * g.a, f.a * g.b + f.b}; }
+A id_affine() { return A{}; }
+using atree = avl_segtree<S, op, e, A, map_affine, comp_affine, id_affine>;
 
 S mk(ll v) {
   S s;
@@ -53,7 +75,8 @@ T op_cat(T a, T b) {
 }
 T e_cat() { return T{}; }
 
-vector<ll> raw(const tree& t) {
+// to_vec は遅延を配りながら降りるので非 const
+vector<ll> raw(tree& t) {
   vector<ll> r;
   for (auto& x : t.to_vec()) r.push_back(x.sum);
   return r;
@@ -222,6 +245,130 @@ int main() {
     report("片側に偏らせても平衡");
   }
 
+  {  // ---- apply: 区間加算を素朴な配列と突き合わせる ----
+    ng = 0;
+    for (int it = 0; it < 200; it++) {
+      int n = 1 + (int)(rng() % 20);
+      vector<ll> a(n);
+      vector<S> v(n);
+      for (int i = 0; i < n; i++) {
+        a[i] = (ll)(rng() % 100) - 50;
+        v[i] = mk(a[i]);
+      }
+      ltree t(v);
+      for (int q = 0; q < 60; q++) {
+        int l = (int)(rng() % (n + 1)), r = (int)(rng() % (n + 1));
+        if (l > r) swap(l, r);
+        ll f = (ll)(rng() % 21) - 10;
+        for (int i = l; i < r; i++) a[i] += f;
+        t.apply(l, r, f);
+
+        vector<ll> got;
+        for (auto& x : t.to_vec()) got.push_back(x.sum);
+        check(got == a, "apply 後の列");
+
+        int ql = (int)(rng() % (n + 1)), qr = (int)(rng() % (n + 1));
+        if (ql > qr) swap(ql, qr);
+        ll want = 0;
+        for (int i = ql; i < qr; i++) want += a[i];
+        check(t.prod(ql, qr).sum == want, "apply 後の prod");
+        int i = (int)(rng() % n);
+        check(t.get(i).sum == a[i], "apply 後の get");
+      }
+    }
+    report("apply（区間加算）");
+  }
+
+  {  // ---- 非可換な作用（affine）で合成順が正しいか ----
+    ng = 0;
+    for (int it = 0; it < 200; it++) {
+      int n = 1 + (int)(rng() % 15);
+      vector<ll> a(n);
+      vector<S> v(n);
+      for (int i = 0; i < n; i++) {
+        a[i] = (ll)(rng() % 10);
+        v[i] = mk(a[i]);
+      }
+      atree t(v);
+      for (int q = 0; q < 40; q++) {
+        int l = (int)(rng() % (n + 1)), r = (int)(rng() % (n + 1));
+        if (l > r) swap(l, r);
+        A f{(ll)(rng() % 5) + 1, (ll)(rng() % 7)};
+        for (int i = l; i < r; i++) a[i] = f.a * a[i] + f.b;
+        t.apply(l, r, f);
+
+        vector<ll> got;
+        for (auto& x : t.to_vec()) got.push_back(x.sum);
+        check(got == a, "affine 後の列");
+        int ql = (int)(rng() % (n + 1)), qr = (int)(rng() % (n + 1));
+        if (ql > qr) swap(ql, qr);
+        ll want = 0;
+        for (int i = ql; i < qr; i++) want += a[i];
+        check(t.prod(ql, qr).sum == want, "affine 後の prod");
+      }
+    }
+    report("apply（非可換な affine）");
+  }
+
+  {  // ---- 作用と構造変化を混ぜる（push 漏れを炙り出す）----
+    ng = 0;
+    for (int it = 0; it < 200; it++) {
+      vector<ll> a;
+      ltree t;
+      for (int q = 0; q < 100; q++) {
+        int n = (int)a.size();
+        int kind = (int)(rng() % 100);
+        if (kind < 30 || n == 0) {
+          int i = (int)(rng() % (n + 1));
+          ll x = (ll)(rng() % 20) - 10;
+          a.insert(a.begin() + i, x);
+          t.insert(i, mk(x));
+        } else if (kind < 50) {
+          int l = (int)(rng() % (n + 1)), r = (int)(rng() % (n + 1));
+          if (l > r) swap(l, r);
+          a.erase(a.begin() + l, a.begin() + r);
+          t.erase(l, r);
+        } else if (kind < 65) {
+          int i = (int)(rng() % n);
+          ll x = (ll)(rng() % 20) - 10;
+          a[i] = x;
+          t.set(i, mk(x));
+        } else {
+          int l = (int)(rng() % (n + 1)), r = (int)(rng() % (n + 1));
+          if (l > r) swap(l, r);
+          ll f = (ll)(rng() % 11) - 5;
+          for (int i = l; i < r; i++) a[i] += f;
+          t.apply(l, r, f);
+        }
+        vector<ll> got;
+        for (auto& x : t.to_vec()) got.push_back(x.sum);
+        check(got == a, "insert/erase/set/apply 混在");
+        ll all = 0;
+        for (ll x : a) all += x;
+        check(t.all_prod().sum == all, "all_prod");
+      }
+    }
+    report("作用と構造変化の混在");
+  }
+
+  {  // ---- apply の境界 ----
+    ng = 0;
+    ltree t(vector<S>{mk(1), mk(2), mk(3)});
+    t.apply(1, 1, 100);
+    check(t.all_prod().sum == 6, "空区間の apply は何もしない");
+    t.apply(2, 1, 100);
+    check(t.all_prod().sum == 6, "l > r の apply も何もしない");
+    t.apply(1, 5);
+    check(t.get(1).sum == 7, "1 点 apply");
+    t.apply(0, 3, 10);
+    check(t.all_prod().sum == 41, "全体 apply");
+    // 作用を省いた型でも apply は呼べる（何もしない）
+    tree u(vector<S>{mk(1), mk(2)});
+    u.apply(0, 2, avl_segtree_internal::no_lazy{});
+    check(u.all_prod().sum == 3, "作用なしの型では apply は無視される");
+    report("apply の境界");
+  }
+
 #ifdef _GLIBCXX_DEBUG
   puts("速度計測                           : _GLIBCXX_DEBUG のため省略");
 #else
@@ -247,6 +394,15 @@ int main() {
         s += t.prod(l, r).sum;
       }
       check(s != 0, "計算が消えない");
+    });
+    bench("速度 apply x2e5", [&] {
+      ltree u(v);
+      for (int q = 0; q < Q; q++) {
+        int l = (int)(rng() % N), r = (int)(rng() % N);
+        if (l > r) swap(l, r);
+        u.apply(l, r, 1);
+      }
+      check(u.size() == N, "要素数は変わらない");
     });
     bench("速度 insert x2e5", [&] {
       tree u;
