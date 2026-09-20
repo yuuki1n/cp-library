@@ -46,8 +46,31 @@ python tools/gen_snippets.py --no-doc   # 説明コメントを落として貼�
 `#include` 行は落として挿入する。単体では足りないもの（`dijkstra` に対する
 `graph`）はスクリプト内の `DEPS` に書いてあり、依存ぶんも一緒に挿入される。
 
-**ライブラリを直したら実行し直す。** 生成物は VS Code 側に置かれるので
-このリポジトリには入らない。
+生成物は VS Code 側に置かれるので、このリポジトリには入らない。
+
+再生成は `tools/hooks` のフックが自動で行う。有効にするのは一度だけ。
+
+```
+git config core.hooksPath tools/hooks
+```
+
+- `post-commit` — `.hpp` を触ったコミットのあと（`test/` だけなら何もしない）
+- `post-merge` — `git pull` のあと
+
+どちらも失敗してもコミットやマージは止めない。フックを使わない場合は
+**ライブラリを直したら手で実行し直す。**
+
+## 貼り付け欄を空にする
+
+`main.cpp` の「ライブラリ貼り付け欄」を、区切り線を残したまま空にする。
+
+```
+python tools/clear_paste.py path/to/main.cpp
+python tools/clear_paste.py --dry-run path/to/main.cpp
+```
+
+VS Code では `.vscode/tasks.json` の `clear lib`（`ctrl+alt+f11`）から呼べる。
+何度実行しても結果は同じ。
 
 ## 実装の約束ごと
 
