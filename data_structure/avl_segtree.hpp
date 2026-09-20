@@ -78,8 +78,7 @@ struct avl_value {
  *   print(t.prod(0, 5).sum);
  *
  * verify:
- *   (未 verify)
- *   予定: https://judge.yosupo.jp/problem/dynamic_sequence_range_affine_range_sum
+ *   https://judge.yosupo.jp/problem/dynamic_sequence_range_affine_range_sum
  */
 template <class S, S (*op)(S, S), S (*e)(),
           class F = avl_segtree_internal::no_lazy,

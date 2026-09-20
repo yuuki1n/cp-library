@@ -13,9 +13,9 @@ Java 版の資産を C++ に移し替えていく。このファイルはコミ�
 
 移植の進み具合と verify の進み具合は別物なので、それぞれ分けて数えている。
 
-- **移植済み** 17 / 77（うち verify 済み **0**）
+- **移植済み** 18 / 77（うち verify 済み **1**）
 - **移植不要** 29 / 77（ACL 16・標準ライブラリ 10・対象外 3）
-- **残り** 31 / 77（高 7・中 16・低 8）
+- **残り** 30 / 77（高 6・中 16・低 8）
 
 ---
 
@@ -38,6 +38,7 @@ Java 版の資産を C++ に移し替えていく。このファイルはコミ�
 | `dataStructure/BinaryTrie` | `data_structure/binary_trie.hpp` | 未 | xor 最小 / k 番目。xor_all は O(1) |
 | スニペット `invCnt` | `util/inversion_count.hpp` | 未 | 転倒数。マージソート版 |
 | スニペット `rle` | `util/rle.hpp` | 未 | ランレングス圧縮。`rle_decode` も持つ |
+| `dataStructure/.../AVLSegmentTree` | `data_structure/avl_segtree.hpp` | **済** | 挿入・削除・区間作用・区間反転・区間巡回シフト。葉のランレングス圧縮と Beats は未対応（段階 5-6） |
 | スニペット `Matrix` | `math/matrix.hpp` | 未 | Java 版は mod 積と `pow` だけ。C++ 版は `det` / `rank` / `inv` / `solve` を足した上位互換 |
 
 Java に無い追加分（未 verify）:
@@ -106,7 +107,6 @@ Java に無い追加分（未 verify）:
 | `other/Grid` | `util/grid.hpp` | 2 次元グリッドの添字変換と 4/8 近傍 |
 | スニペット `zAlgo` | `string/z_algorithm.hpp` | Z-algorithm。ACL に無い |
 | スニペット `mo`（`Mo`） | `util/mo.hpp` | Mo's algorithm。クラス 59 行 + 使用例 78 行 |
-| `dataStructure/.../AVLSegmentTree` | `data_structure/avl_segtree.hpp` | AVL 木で列を持つ。挿入・削除・区間反転・区間巡回シフトができる遅延セグ木 |
 
 ### 中
 
@@ -171,7 +171,8 @@ Java に無い追加分（未 verify）:
 | 5 | 葉のランレングス圧縮 | 未 |
 | 6 | Beats（fail） | 未 |
 
-全段階が終わるまでは「移植済み」に数えず、ここで進み具合を見る。
+段階 4 までで Library Checker の verify を通したので「移植済み」に数えた。
+残る段階 5・6 はここで進み具合を見る。
 
 段階 3 まで終われば
 [dynamic_sequence_range_affine_range_sum](https://judge.yosupo.jp/problem/dynamic_sequence_range_affine_range_sum)
@@ -181,8 +182,8 @@ Java に無い追加分（未 verify）:
 
 ## verify 状況
 
-**0 / 17 が verify 済み。** `test/` のテストは総当たりとの突き合わせなので、
-実装の正しさはある程度見ているが、公開ジャッジは 1 つも通していない。
+**1 / 18 が verify 済み。** `test/` のテストは総当たりとの突き合わせなので、
+実装の正しさはある程度見ているが、公開ジャッジを通したものはまだ少ない。
 
 | ライブラリ | 状態 | verify 先 |
 |---|---|---|
@@ -192,6 +193,7 @@ Java に無い追加分（未 verify）:
 | `prime` | 未 | [factorize](https://judge.yosupo.jp/problem/factorize) / [enumerate_primes](https://judge.yosupo.jp/problem/enumerate_primes) |
 | `inversion_count` | 未 | 未定。[static_range_inversions_query](https://judge.yosupo.jp/problem/static_range_inversions_query) は Mo's algorithm 前提で、配列全体の転倒数だけでは通らない |
 | `rle` | 未 | 未定。Library Checker に該当する問題は無い |
+| `avl_segtree` | **済** | [dynamic_sequence_range_affine_range_sum](https://judge.yosupo.jp/problem/dynamic_sequence_range_affine_range_sum) |
 | `union_find` | 未 | 未定 |
 | `monoid_union_find` | 未 | [dynamic_graph_vertex_add_component_sum](https://judge.yosupo.jp/problem/dynamic_graph_vertex_add_component_sum)（`rollback_union_find` と組で Offline Dynamic Connectivity） |
 | `relational_union_find` | 未 | [unionfind_with_potential](https://judge.yosupo.jp/problem/unionfind_with_potential) / [非可換版](https://judge.yosupo.jp/problem/unionfind_with_potential_non_commutative_group) |

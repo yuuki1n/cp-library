@@ -113,4 +113,19 @@ python tools/gen_snippets.py --no-doc   # 説明コメントを落として貼�
 
 ## verify
 
-`test/` 配下に、AtCoder や Library Checker の問題を解くコードを置く。ヘッダ冒頭のコメントに verify 済みの問題 URL を必ず残す。
+`test/verify/` に、Library Checker や AtCoder に提出するコードを置く。
+ジャッジに投げて AC を取ったら、ヘッダ冒頭のコメントの `verify:` 欄に問題 URL を
+書き、`PORTING.md` の verify 表も「済」にする。
+
+提出用コードは実行に入力が要るので CI では走らせず、ビルドだけ確かめている
+（ライブラリを直したときに壊れていないかを見るため）。
+
+**提出する前に 1 ファイルにまとめる。** ジャッジは 1 ファイルしか受け取らないので、
+`#include "../../..."` を残したまま出すとコンパイルエラーになる。
+
+```
+python tools/bundle.py test/verify/foo.cpp -o test/verify/submit/foo.cpp
+```
+
+`test/verify/submit/` は生成物なので `.gitignore` に入れてある。古いものを提出
+しないよう、提出のたびに作り直す。

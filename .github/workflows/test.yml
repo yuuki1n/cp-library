@@ -39,6 +39,16 @@ jobs:
             echo "::endgroup::"
           done
 
+      # 提出用のコードはジャッジ側でしか実行できないので、ビルドだけ確かめる
+      - name: verify 用コードをビルド
+        working-directory: test/verify
+        run: |
+          for f in *.cpp; do
+            echo "::group::$f"
+            g++ -std=gnu++20 -O2 -Wall -Wextra -I../.. -I"$HOME/ac-library"                 -fsyntax-only "$f"
+            echo "::endgroup::"
+          done
+
       # 落ちても止めない。手元とジャッジで警告の出方が違うことがあるため
       - name: 厳しめの警告（参考）
         continue-on-error: true

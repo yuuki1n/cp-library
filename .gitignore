@@ -18,3 +18,6 @@ expected.txt
 *.swp
 Thumbs.db
 desktop.ini
+
+# 提出用にまとめたファイル。tools/bundle.py で作り直せる生成物
+test/verify/submit/
