@@ -38,7 +38,7 @@ Java 版の資産を C++ に移し替えていく。このファイルはコミ�
 | `dataStructure/BinaryTrie` | `data_structure/binary_trie.hpp` | 未 | xor 最小 / k 番目。xor_all は O(1) |
 | スニペット `invCnt` | `util/inversion_count.hpp` | 未 | 転倒数。マージソート版 |
 | スニペット `rle` | `util/rle.hpp` | 未 | ランレングス圧縮。`rle_decode` も持つ |
-| `dataStructure/.../AVLSegmentTree` | `data_structure/avl_segtree.hpp` | **済** | 挿入・削除・区間作用・区間反転・区間巡回シフト。葉のランレングス圧縮と Beats は未対応（段階 5-6） |
+| `dataStructure/.../AVLSegmentTree` | `data_structure/avl_segtree.hpp` | **済** | 挿入・削除・区間作用・区間反転・区間巡回シフト・葉のランレングス圧縮・Beats |
 | スニペット `Matrix` | `math/matrix.hpp` | 未 | Java 版は mod 積と `pow` だけ。C++ 版は `det` / `rank` / `inv` / `solve` を足した上位互換 |
 
 Java に無い追加分（未 verify）:
@@ -168,11 +168,10 @@ Java に無い追加分（未 verify）:
 | 2 | 遅延伝搬 apply(l, r, f) | 済 |
 | 3 | 区間反転 reverse(l, r) と rev フック | 済 |
 | 4 | 区間巡回シフト rotate(l, r, k) | 済 |
-| 5 | 葉のランレングス圧縮 | 未 |
-| 6 | Beats（fail） | 未 |
+| 5 | 葉のランレングス圧縮 | 済 |
+| 6 | Beats（fail） | 済 |
 
-段階 4 までで Library Checker の verify を通したので「移植済み」に数えた。
-残る段階 5・6 はここで進み具合を見る。
+全段階が終わり、Java 版の機能はすべて移植できた。
 
 段階 3 まで終われば
 [dynamic_sequence_range_affine_range_sum](https://judge.yosupo.jp/problem/dynamic_sequence_range_affine_range_sum)

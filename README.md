@@ -129,3 +129,22 @@ python tools/bundle.py test/verify/foo.cpp -o test/verify/submit/foo.cpp
 
 `test/verify/submit/` は生成物なので `.gitignore` に入れてある。古いものを提出
 しないよう、提出のたびに作り直す。
+
+**提出する前に手元で回す。** `tools/verify_local.py` が、本物のテストケースで
+全ケースを流して判定まで出す。bundle してからビルドするので、相対 include が
+残っていれば（＝提出したら CE になる状態なら）ここで分かる。
+
+```
+python tools/verify_local.py test/verify/foo.cpp
+```
+
+初回だけテストケースの生成元を用意する。cp-library の 1 つ上に置けば引数は要らない。
+
+```
+cd ..            # atcoder/
+git clone --depth 1 https://github.com/yosupo06/library-checker-problems.git
+pip install colorlog
+```
+
+生成したケースは問題ごとに数百 MB になる。要らなくなったら `in/` と `out/` を
+消してよい（`--regen` で作り直せる）。
