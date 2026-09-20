@@ -32,9 +32,11 @@ struct avl_value {
  * avl_segtree<S, op, e, F, mapping, composition, id, rev> : AVL 木で列を持つ
  *
  *   avl_segtree(v)     列 v から構築                O(n)
- *   avl_segtree(n)     e() を n 個                  O(n)
+ *   avl_segtree(n)     e() を n 個                  O(1)
+ *   avl_segtree(n, x)  x を n 個                    O(1)
  *   size()
  *   insert(i, x)       i 番目の手前に x を挿す      O(log n)
+ *   insert(i, x, k)    x を k 個まとめて挿す        O(log n)
  *   erase(i)           i 番目を消す                 O(log n)
  *   erase(l, r)        [l, r) を消す                O((log n) + 捨てる節点数)
  *   set(i, x)          i 番目を x にする            O(log n)
@@ -51,15 +53,20 @@ struct avl_value {
  *   添字は 0 始まりの半開区間。l >= r の区間は prod なら e()、erase と apply と
  *   reverse は何もしない。rotate は k を r - l で丸めるので負でも大きくてもよい。
  *   S は avl_value を継承すると x.sz に要素数が入る（op や mapping の中で
- *   維持しなくてよい）。mapping を呼ぶ前に x.sz へ節点の要素数が入る。
+ *   維持しなくてよい）。mapping を呼ぶ前に x.sz へ要素数が入る。
  *   composition(f, g) は「g を適用してから f」。ACL の lazy_segtree と同じ。
  *   作用が要らないなら F 以降は省ける。省いた場合 apply は何もしない。
  *   rev(x) は x を逆順にしたときの集約値。和や min のように向きに依らないなら
  *   既定（何もしない）でよい。文字列の連結など向きで変わる集約では指定する。
- *   節点は使い回すので、使うメモリは同時に存在する要素数に比例する。
+ *
+ *   葉は「同じ値が k 個」をまとめて持つ。avl_segtree(n) や insert(i, x, k) が
+ *   節点 1 個で済み、触られるまで分かれない。そのぶん、まとまった葉の総積を
+ *   読むときだけ op を O(log k) 回呼ぶ。
+ *   要素数は int に収まる範囲まで。to_vec() だけは要素の数ぶん作るので、
+ *   まとまった葉を大きく取ったまま呼ぶとメモリを食う。
+ *   節点は使い回すので、使うメモリは同時に存在する葉の数に比例する。
  *   erase(l, r) は捨てる部分木をたどって節点を回収するので、その節点数ぶん
- *   かかる。今は 1 要素 1 葉なので 2 (r - l) 個。挿入したぶんしか消せないので
- *   ならし計算量は O(log n) のまま。
+ *   かかる。挿入したぶんしか消せないのでならし計算量は O(log n) のまま。
  *
  * 使用例:
  *   struct S : avl_value { ll sum = 0; };
@@ -90,9 +97,9 @@ struct avl_segtree {
  private:
   struct node {
     int lft = -1, rht = -1;  // 子の添字。葉は -1
-    int sz = 1;              // 部分木の要素数
+    int sz = 1;              // 内部節点は部分木の要素数、葉はまとめた個数
     int rnk = 1;             // 部分木の高さ
-    S val;                   // 葉なら自身の値、内部節点なら部分木の総積
+    S val;                   // 内部節点は総積、葉は 1 要素ぶんの値
     F laz = id();            // 子へまだ配っていない作用
     bool has_laz = false;
     bool has_rev = false;  // 子へまだ配っていない反転
@@ -132,9 +139,11 @@ struct avl_segtree {
     free_.push_back(i);
   }
 
-  int make(const S& v) {
+  // 値 v が k 個ぶん並ぶ葉を作る
+  int make(const S& v, int k = 1) {
     int i = alloc();
     pool[i].val = v;
+    pool[i].sz = k;
     avl_segtree_internal::set_sz(pool[i].val, 1);
     return i;
   }
@@ -146,8 +155,49 @@ struct avl_segtree {
     return x;
   }
 
+  // a が n 個並んだときの総積。O(log n)
+  static S pow_(const S& a, int n) {
+    if (n <= 0) return zero_();
+    S x = a;
+    avl_segtree_internal::set_sz(x, 1);
+    if (n == 1) return x;
+    S r = zero_();
+    int rn = 0, xn = 1;
+    while (n) {
+      if (n & 1) {
+        r = rn == 0 ? x : op(r, x);
+        rn += xn;
+        avl_segtree_internal::set_sz(r, rn);
+      }
+      n >>= 1;
+      if (n) {
+        x = op(x, x);
+        xn *= 2;
+        avl_segtree_internal::set_sz(x, xn);
+      }
+    }
+    return r;
+  }
+
   int sz_(int i) const { return i < 0 ? 0 : pool[i].sz; }
   int rnk_(int i) const { return i < 0 ? 0 : pool[i].rnk; }
+
+  // 節点の総積。まとまった葉だけ冪を計算する
+  S agg_(int i) const {
+    const node& n = pool[i];
+    if (n.lft >= 0 || n.sz == 1) return n.val;
+    return pow_(n.val, n.sz);
+  }
+
+  // まとまった葉を左 k 個・右 (sz - k) 個に割る。i は内部節点になる
+  void split_leaf(int i, int k) {
+    int sz = pool[i].sz;
+    S v = pool[i].val;  // 確保で pool が動くので先に控える
+    int a = make(v, k), b = make(v, sz - k);
+    pool[i].lft = a;
+    pool[i].rht = b;
+    update(i);
+  }
 
   /* ---- 遅延の伝播。子を見る前に必ず push を通す ---- */
 
@@ -155,9 +205,11 @@ struct avl_segtree {
   void apply_all(int i, const F& f) {
     if (i < 0) return;
     node& n = pool[i];
-    avl_segtree_internal::set_sz(n.val, n.sz);
+    // 葉は 1 要素ぶんの値を持つので、作用もその単位でかける
+    int m = n.lft < 0 ? 1 : n.sz;
+    avl_segtree_internal::set_sz(n.val, m);
     n.val = mapping(f, n.val);
-    avl_segtree_internal::set_sz(n.val, n.sz);
+    avl_segtree_internal::set_sz(n.val, m);
     if (n.lft < 0) return;  // 葉は配る先が無い
     n.laz = n.has_laz ? composition(f, n.laz) : f;
     n.has_laz = true;
@@ -167,11 +219,17 @@ struct avl_segtree {
   void reverse_all(int i) {
     if (i < 0) return;
     node& n = pool[i];
+    if (n.lft < 0) {  // 同じ値が並ぶだけなので並び順は変わらない
+      avl_segtree_internal::set_sz(n.val, 1);
+      n.val = rev(n.val);
+      avl_segtree_internal::set_sz(n.val, 1);
+      return;
+    }
     std::swap(n.lft, n.rht);
     avl_segtree_internal::set_sz(n.val, n.sz);
     n.val = rev(n.val);
     avl_segtree_internal::set_sz(n.val, n.sz);
-    if (n.lft >= 0) n.has_rev = !n.has_rev;
+    n.has_rev = !n.has_rev;
   }
 
   // 溜めた作用と反転を子へ配る
@@ -196,7 +254,7 @@ struct avl_segtree {
     if (n.lft < 0) return i;
     n.sz = sz_(n.lft) + sz_(n.rht);
     n.rnk = std::max(rnk_(n.lft), rnk_(n.rht)) + 1;
-    n.val = op(pool[n.lft].val, pool[n.rht].val);
+    n.val = op(agg_(n.lft), agg_(n.rht));
     avl_segtree_internal::set_sz(n.val, n.sz);
     return i;
   }
@@ -264,6 +322,7 @@ struct avl_segtree {
     if (i < 0) return {-1, -1};
     if (k == 0) return {-1, i};
     if (k == sz_(i)) return {i, -1};
+    if (pool[i].lft < 0) split_leaf(i, k);  // まとまった葉の途中で切る
     push(i);
     int l = pool[i].lft, r = pool[i].rht, ls = sz_(l);
     kill(i);  // i はどちらの木にも残らない
@@ -290,26 +349,34 @@ struct avl_segtree {
     return update(i);
   }
 
-  // k 番目の手前に葉を挿し、戻りながら平衡を直す
-  int insert_(int i, int k, const S& x) {
-    if (pool[i].lft < 0) {  // 葉に着いた。葉と新しい親を 1 つずつ作る
-      int leaf = make(x), p = alloc();
-      pool[p].lft = k == 0 ? leaf : i;
-      pool[p].rht = k == 0 ? i : leaf;
-      return update(p);
+  // k 番目の手前に「x が cnt 個」を挿し、戻りながら平衡を直す
+  int insert_(int i, int k, const S& x, int cnt) {
+    if (pool[i].lft < 0) {
+      if (0 < k && k < pool[i].sz) {
+        split_leaf(i, k);  // まとまった葉の途中なら先に割る
+      } else {             // 葉の端なので、葉と新しい親を 1 つずつ作る
+        int leaf = make(x, cnt), p = alloc();
+        pool[p].lft = k == 0 ? leaf : i;
+        pool[p].rht = k == 0 ? i : leaf;
+        return update(p);
+      }
     }
     push(i);
     int ls = sz_(pool[i].lft);
     if (k < ls)
-      pool[i].lft = insert_(pool[i].lft, k, x);
+      pool[i].lft = insert_(pool[i].lft, k, x, cnt);
     else
-      pool[i].rht = insert_(pool[i].rht, k - ls, x);
+      pool[i].rht = insert_(pool[i].rht, k - ls, x, cnt);
     return balance(i);
   }
 
-  // k 番目の葉を消す。部分木が空になったら -1 を返す
+  // k 番目を消す。部分木が空になったら -1 を返す
   int erase_(int i, int k) {
     if (pool[i].lft < 0) {
+      if (pool[i].sz > 1) {  // 同じ値の並びなので 1 つ減らすだけ
+        pool[i].sz--;
+        return i;
+      }
       kill(i);
       return -1;
     }
@@ -335,37 +402,44 @@ struct avl_segtree {
     return balance(i);
   }
 
-  // 葉を書き換えて、戻りながら祖先を作り直す
-  void set_(int i, int k, const S& x) {
+  // k 番目を x にする。まとまった葉なら 1 個だけ切り出してから書き換える
+  int set_(int i, int k, const S& x) {
     if (pool[i].lft < 0) {
-      pool[i].val = x;
-      avl_segtree_internal::set_sz(pool[i].val, 1);
-      return;
+      if (pool[i].sz == 1) {
+        pool[i].val = x;
+        avl_segtree_internal::set_sz(pool[i].val, 1);
+        return i;
+      }
+      split_leaf(i, k > 0 ? k : 1);
     }
     push(i);
     int ls = sz_(pool[i].lft);
     if (k < ls)
-      set_(pool[i].lft, k, x);
+      pool[i].lft = set_(pool[i].lft, k, x);
     else
-      set_(pool[i].rht, k - ls, x);
-    update(i);
+      pool[i].rht = set_(pool[i].rht, k - ls, x);
+    return balance(i);
   }
 
-  void apply_(int i, int l, int r, const F& f) {
-    if (i < 0 || l >= r) return;
+  int apply_(int i, int l, int r, const F& f) {
+    if (i < 0 || l >= r) return i;
     if (l == 0 && r == pool[i].sz) {
       apply_all(i, f);
-      return;
+      return i;
     }
+    // まとまった葉の一部だけに作用させるので、境目で割る
+    if (pool[i].lft < 0) split_leaf(i, l > 0 ? l : r);
     push(i);
     int ls = sz_(pool[i].lft);
-    if (l < ls) apply_(pool[i].lft, l, std::min(ls, r), f);
-    if (ls < r) apply_(pool[i].rht, std::max(0, l - ls), r - ls, f);
-    update(i);
+    if (l < ls) pool[i].lft = apply_(pool[i].lft, l, std::min(ls, r), f);
+    if (ls < r)
+      pool[i].rht = apply_(pool[i].rht, std::max(0, l - ls), r - ls, f);
+    return balance(i);
   }
 
   S prod_(int i, int l, int r) {
     if (i < 0 || l >= r) return zero_();
+    if (pool[i].lft < 0) return pow_(pool[i].val, r - l);  // 葉
     if (l == 0 && r == pool[i].sz) return pool[i].val;
     push(i);
     int ls = sz_(pool[i].lft);
@@ -383,7 +457,9 @@ struct avl_segtree {
   void to_vec_(int i, std::vector<S>& out) {
     if (i < 0) return;
     if (pool[i].lft < 0) {
-      out.push_back(pool[i].val);
+      S v = pool[i].val;
+      avl_segtree_internal::set_sz(v, 1);
+      out.insert(out.end(), (size_t)pool[i].sz, v);
       return;
     }
     push(i);
@@ -393,7 +469,13 @@ struct avl_segtree {
 
  public:
   avl_segtree() = default;
-  explicit avl_segtree(int n) : avl_segtree(std::vector<S>(n, e())) {}
+  // e() を n 個。葉 1 つで持つので O(1)
+  explicit avl_segtree(int n) : avl_segtree(n, e()) {}
+  // x を n 個。葉 1 つで持つので O(1)
+  avl_segtree(int n, const S& x) {
+    assert(0 <= n);
+    if (n > 0) root = make(x, n);
+  }
   explicit avl_segtree(const std::vector<S>& v) {
     if (v.empty()) return;
     pool.reserve(2 * v.size());
@@ -408,10 +490,11 @@ struct avl_segtree {
 
   int size() const { return sz_(root); }
 
-  // i 番目の手前に x を挿す。i == size() なら末尾に足す
-  void insert(int i, const S& x) {
+  // i 番目の手前に x を k 個挿す。i == size() なら末尾に足す
+  void insert(int i, const S& x, int k = 1) {
     assert(0 <= i && i <= size());
-    root = root < 0 ? make(x) : insert_(root, i, x);
+    assert(0 < k);
+    root = root < 0 ? make(x, k) : insert_(root, i, x, k);
   }
 
   void erase(int i) {
@@ -432,7 +515,7 @@ struct avl_segtree {
   // i 番目を x にする
   void set(int i, const S& x) {
     assert(0 <= i && i < size());
-    set_(root, i, x);
+    root = set_(root, i, x);
   }
 
   void apply(int i, const F& f) {
@@ -444,7 +527,7 @@ struct avl_segtree {
   void apply(int l, int r, const F& f) {
     assert(0 <= l && r <= size());
     if (l >= r) return;
-    apply_(root, l, r, f);
+    root = apply_(root, l, r, f);
   }
 
   // [l, r) を逆順にする。l >= r なら何もしない
@@ -482,7 +565,7 @@ struct avl_segtree {
     return prod_(root, l, std::max(l, r));
   }
 
-  S all_prod() const { return root < 0 ? zero_() : pool[root].val; }
+  S all_prod() const { return root < 0 ? zero_() : agg_(root); }
 
   std::vector<S> to_vec() {
     std::vector<S> out;

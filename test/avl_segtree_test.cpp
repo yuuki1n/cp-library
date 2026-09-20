@@ -608,6 +608,130 @@ int main() {
     report("rotate の境界");
   }
 
+  {  // ---- まとまった葉: 巨大な n でも構築できるか ----
+    ng = 0;
+    const int BIG = 1000000000;
+    ltree t(BIG, mk(2));
+    check(t.size() == BIG, "size が n");
+    check(t.prod(0, 10).sum == 20, "先頭 10 個の和");
+    check(t.prod(BIG - 3, BIG).sum == 6, "末尾 3 個の和");
+    check(t.get(BIG / 2).sum == 2, "真ん中の 1 個");
+    check(t.all_prod().sum == 2LL * BIG, "全体の和");
+
+    t.apply(0, BIG, 1);  // 全部に +1
+    check(t.all_prod().sum == 3LL * BIG, "全体 apply");
+    t.apply(5, 8, 10);  // 途中だけ +10。ここで葉が割れる
+    check(t.prod(5, 8).sum == 39, "割れた区間");
+    check(t.prod(0, 5).sum == 15, "割れた左");
+    check(t.all_prod().sum == 3LL * BIG + 30, "割った後の全体");
+
+    t.set(7, mk(100));
+    check(t.get(7).sum == 100, "set で 1 個だけ変わる");
+    check(t.get(6).sum == 13, "同じ区間の隣は 13 のまま");
+    check(t.get(8).sum == 3, "区間外の隣は 3 のまま");
+
+    t.erase(0, 1000);
+    check(t.size() == BIG - 1000, "まとめて消す");
+    report("まとまった葉（n = 1e9）");
+  }
+
+  {  // ---- insert(i, x, k): まとめて挿す ----
+    ng = 0;
+    ltree t;
+    t.insert(0, mk(5), 4);
+    check(raw2(t) == (vector<ll>{5, 5, 5, 5}), "4 個まとめて");
+    t.insert(2, mk(9), 3);
+    check(raw2(t) == (vector<ll>{5, 5, 9, 9, 9, 5, 5}), "途中に 3 個");
+    t.insert(7, mk(1), 2);
+    check(raw2(t) == (vector<ll>{5, 5, 9, 9, 9, 5, 5, 1, 1}), "末尾に 2 個");
+    check(t.size() == 9, "size");
+    check(t.all_prod().sum == 5 * 4 + 9 * 3 + 1 * 2, "全体の和");
+    report("insert(i, x, k)");
+  }
+
+  {  // ---- まとまった葉を素朴な実装と突き合わせる ----
+    ng = 0;
+    for (int it = 0; it < 300; it++) {
+      // 同じ値が続く列にして、葉がまとまりやすい状況を作る
+      vector<ll> a;
+      ltree t;
+      {
+        int k = 1 + (int)(rng() % 8);
+        ll x = (ll)(rng() % 5);
+        t = ltree(k, mk(x));
+        a.assign(k, x);
+      }
+      for (int q = 0; q < 80; q++) {
+        int n = (int)a.size();
+        int kind = (int)(rng() % 100);
+        if (kind < 25) {  // まとめて挿す
+          int i = (int)(rng() % (n + 1)), k = 1 + (int)(rng() % 4);
+          ll x = (ll)(rng() % 5);
+          a.insert(a.begin() + i, (size_t)k, x);
+          t.insert(i, mk(x), k);
+        } else if (kind < 40 && n > 0) {
+          int i = (int)(rng() % n);
+          a.erase(a.begin() + i);
+          t.erase(i);
+        } else if (kind < 52 && n > 0) {
+          int l = (int)(rng() % (n + 1)), r = (int)(rng() % (n + 1));
+          if (l > r) swap(l, r);
+          a.erase(a.begin() + l, a.begin() + r);
+          t.erase(l, r);
+        } else if (kind < 64 && n > 0) {
+          int i = (int)(rng() % n);
+          ll x = (ll)(rng() % 5);
+          a[i] = x;
+          t.set(i, mk(x));
+        } else if (kind < 80) {
+          int l = (int)(rng() % (n + 1)), r = (int)(rng() % (n + 1));
+          if (l > r) swap(l, r);
+          ll f = (ll)(rng() % 7) - 3;
+          for (int i = l; i < r; i++) a[i] += f;
+          t.apply(l, r, f);
+        } else if (kind < 90) {
+          int l = (int)(rng() % (n + 1)), r = (int)(rng() % (n + 1));
+          if (l > r) swap(l, r);
+          std::reverse(a.begin() + l, a.begin() + r);
+          t.reverse(l, r);
+        } else {
+          int l = (int)(rng() % (n + 1)), r = (int)(rng() % (n + 1));
+          if (l > r) swap(l, r);
+          int k = (int)(rng() % 9) - 4;
+          if (r - l > 1) {
+            int m = ((k % (r - l)) + (r - l)) % (r - l);
+            std::rotate(a.begin() + l, a.begin() + l + m, a.begin() + r);
+          }
+          t.rotate(l, r, k);
+        }
+        check(raw2(t) == a, "まとまった葉を含む混在");
+        int ql = (int)(rng() % ((int)a.size() + 1));
+        int qr = (int)(rng() % ((int)a.size() + 1));
+        if (ql > qr) swap(ql, qr);
+        ll want = 0;
+        for (int i = ql; i < qr; i++) want += a[i];
+        check(t.prod(ql, qr).sum == want, "まとまった葉を含む prod");
+      }
+    }
+    report("まとまった葉 x 素朴な実装");
+  }
+
+  {  // ---- 非可換な op でも冪が正しいか ----
+    ng = 0;
+    for (int k = 1; k <= 40; k++) {
+      vector<T> v(1);
+      v[0].s = "ab";
+      avl_segtree<T, op_cat, e_cat> t(k, v[0]);
+      string want;
+      for (int i = 0; i < k; i++) want += "ab";
+      check(t.all_prod().s == want, "ab を " + to_string(k) + " 個");
+      check(t.prod(0, k).s == want, "prod で全体");
+      if (k >= 2)
+        check(t.prod(1, k - 1).s == want.substr(2, (k - 2) * 2), "prod で一部");
+    }
+    report("まとまった葉の冪（文字列連結）");
+  }
+
 #ifdef _GLIBCXX_DEBUG
   puts("速度計測                           : _GLIBCXX_DEBUG のため省略");
 #else
