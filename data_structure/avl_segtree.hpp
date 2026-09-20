@@ -41,6 +41,7 @@ struct avl_value {
  *   apply(i, f)        i 番目に f を作用させる      O(log n)
  *   apply(l, r, f)     [l, r) に f を作用させる     O(log n)
  *   reverse(l, r)      [l, r) を逆順にする          O(log n)
+ *   rotate(l, r, k)    [l, r) を左へ k 巡回させる   O(log n)
  *   get(i)             i 番目                       O(log n)
  *   prod(l, r)         [l, r) の総積                O(log n)
  *   all_prod()         全体の総積                   O(1)
@@ -48,7 +49,7 @@ struct avl_value {
  *   clear()            空にする
  *
  *   添字は 0 始まりの半開区間。l >= r の区間は prod なら e()、erase と apply と
- *   reverse は何もしない。
+ *   reverse は何もしない。rotate は k を r - l で丸めるので負でも大きくてもよい。
  *   S は avl_value を継承すると x.sz に要素数が入る（op や mapping の中で
  *   維持しなくてよい）。mapping を呼ぶ前に x.sz へ節点の要素数が入る。
  *   composition(f, g) は「g を適用してから f」。ACL の lazy_segtree と同じ。
@@ -73,6 +74,7 @@ struct avl_value {
  *   t.insert(3, x);
  *   t.apply(0, 5, 10);
  *   t.reverse(1, 4);
+ *   t.rotate(0, 5, 2);            // 添字 2 の要素が先頭に来る
  *   print(t.prod(0, 5).sum);
  *
  * verify:
@@ -404,6 +406,20 @@ struct avl_segtree {
     auto [c, d] = split_(b, r - l);
     reverse_all(c);
     root = merge_(merge_(a, c), d);
+  }
+
+  // [l, r) を左へ k だけ巡回させる。l + k 番目が l 番目に来る。
+  // k は負でも r - l 以上でもよい。長さ 1 以下なら何もしない
+  void rotate(int l, int r, int k) {
+    assert(0 <= l && r <= size());
+    int n = r - l;
+    if (n <= 1) return;
+    k = ((k % n) + n) % n;
+    if (k == 0) return;
+    auto [a, b] = split_(root, l);
+    auto [c, d] = split_(b, n);
+    auto [c1, c2] = split_(c, k);
+    root = merge_(merge_(a, merge_(c2, c1)), d);
   }
 
   S get(int i) {

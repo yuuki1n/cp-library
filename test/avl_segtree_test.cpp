@@ -501,6 +501,113 @@ int main() {
     report("reverse の境界");
   }
 
+  {  // ---- rotate: std::rotate と突き合わせる ----
+    ng = 0;
+    for (int it = 0; it < 300; it++) {
+      int n = 1 + (int)(rng() % 20);
+      vector<ll> a(n);
+      vector<S> v(n);
+      for (int i = 0; i < n; i++) {
+        a[i] = (ll)(rng() % 100) - 50;
+        v[i] = mk(a[i]);
+      }
+      ltree t(v);
+      for (int q = 0; q < 50; q++) {
+        int l = (int)(rng() % (n + 1)), r = (int)(rng() % (n + 1));
+        if (l > r) swap(l, r);
+        int k = (int)(rng() % 41) - 20;  // 負や r-l 以上も撃つ
+        if (r - l > 1) {
+          int m = ((k % (r - l)) + (r - l)) % (r - l);
+          std::rotate(a.begin() + l, a.begin() + l + m, a.begin() + r);
+        }
+        t.rotate(l, r, k);
+
+        vector<ll> got;
+        for (auto& x : t.to_vec()) got.push_back(x.sum);
+        check(got == a, "rotate 後の列");
+
+        int ql = (int)(rng() % (n + 1)), qr = (int)(rng() % (n + 1));
+        if (ql > qr) swap(ql, qr);
+        ll want = 0;
+        for (int i = ql; i < qr; i++) want += a[i];
+        check(t.prod(ql, qr).sum == want, "rotate 後の prod");
+      }
+    }
+    report("rotate（std::rotate と比較）");
+  }
+
+  {  // ---- rotate と他の操作を混ぜる ----
+    ng = 0;
+    for (int it = 0; it < 200; it++) {
+      vector<ll> a;
+      ltree t;
+      for (int q = 0; q < 100; q++) {
+        int n = (int)a.size();
+        int kind = (int)(rng() % 100);
+        if (kind < 30 || n == 0) {
+          int i = (int)(rng() % (n + 1));
+          ll x = (ll)(rng() % 20) - 10;
+          a.insert(a.begin() + i, x);
+          t.insert(i, mk(x));
+        } else if (kind < 42) {
+          int l = (int)(rng() % (n + 1)), r = (int)(rng() % (n + 1));
+          if (l > r) swap(l, r);
+          a.erase(a.begin() + l, a.begin() + r);
+          t.erase(l, r);
+        } else if (kind < 60) {
+          int l = (int)(rng() % (n + 1)), r = (int)(rng() % (n + 1));
+          if (l > r) swap(l, r);
+          ll f = (ll)(rng() % 11) - 5;
+          for (int i = l; i < r; i++) a[i] += f;
+          t.apply(l, r, f);
+        } else if (kind < 78) {
+          int l = (int)(rng() % (n + 1)), r = (int)(rng() % (n + 1));
+          if (l > r) swap(l, r);
+          std::reverse(a.begin() + l, a.begin() + r);
+          t.reverse(l, r);
+        } else {
+          int l = (int)(rng() % (n + 1)), r = (int)(rng() % (n + 1));
+          if (l > r) swap(l, r);
+          int k = (int)(rng() % 21) - 10;
+          if (r - l > 1) {
+            int m = ((k % (r - l)) + (r - l)) % (r - l);
+            std::rotate(a.begin() + l, a.begin() + l + m, a.begin() + r);
+          }
+          t.rotate(l, r, k);
+        }
+        vector<ll> got;
+        for (auto& x : t.to_vec()) got.push_back(x.sum);
+        check(got == a, "rotate を含む混在");
+      }
+    }
+    report("rotate と構造変化の混在");
+  }
+
+  {  // ---- rotate の境界 ----
+    ng = 0;
+    ltree t(vector<S>{mk(1), mk(2), mk(3), mk(4), mk(5)});
+    t.rotate(0, 5, 2);
+    check(raw2(t) == (vector<ll>{3, 4, 5, 1, 2}), "左へ 2");
+    t.rotate(0, 5, -2);
+    check(raw2(t) == (vector<ll>{1, 2, 3, 4, 5}), "負なら逆向き（戻る）");
+    t.rotate(0, 5, 5);
+    check(raw2(t) == (vector<ll>{1, 2, 3, 4, 5}), "長さちょうどなら変化なし");
+    t.rotate(0, 5, 7);
+    check(raw2(t) == (vector<ll>{3, 4, 5, 1, 2}), "長さより大きくても丸める");
+    t.rotate(0, 5, -7);
+    check(raw2(t) == (vector<ll>{1, 2, 3, 4, 5}), "負で大きくても丸める");
+    t.rotate(1, 4, 1);
+    check(raw2(t) == (vector<ll>{1, 3, 4, 2, 5}), "部分区間");
+    t.rotate(2, 3, 1);
+    check(raw2(t) == (vector<ll>{1, 3, 4, 2, 5}), "長さ 1 なら何もしない");
+    t.rotate(2, 2, 3);
+    check(raw2(t) == (vector<ll>{1, 3, 4, 2, 5}), "空区間なら何もしない");
+    t.rotate(3, 2, 1);
+    check(raw2(t) == (vector<ll>{1, 3, 4, 2, 5}), "l > r なら何もしない");
+    check(t.all_prod().sum == 15, "総和は変わらない");
+    report("rotate の境界");
+  }
+
 #ifdef _GLIBCXX_DEBUG
   puts("速度計測                           : _GLIBCXX_DEBUG のため省略");
 #else
@@ -542,6 +649,15 @@ int main() {
         int l = (int)(rng() % N), r = (int)(rng() % N);
         if (l > r) swap(l, r);
         u.reverse(l, r);
+      }
+      check(u.size() == N, "要素数は変わらない");
+    });
+    bench("速度 rotate x2e5", [&] {
+      ltree u(v);
+      for (int q = 0; q < Q; q++) {
+        int l = (int)(rng() % N), r = (int)(rng() % N);
+        if (l > r) swap(l, r);
+        u.rotate(l, r, (int)(rng() % 1000) - 500);
       }
       check(u.size() == N, "要素数は変わらない");
     });

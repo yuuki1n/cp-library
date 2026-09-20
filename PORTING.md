@@ -165,9 +165,9 @@ Java に無い追加分（未 verify）:
 | 段階 | 内容 | 状態 |
 |---|---|---|
 | 1 | AVL の骨格（merge / split / balance）+ build / insert / erase / get / prod / size | 済 |
-| 2 | 遅延伝搬 apply(l, r, f) | 未 |
-| 3 | 区間反転 reverse(l, r) と rev フック | 未 |
-| 4 | 区間巡回シフト rotate(l, r, k) | 未 |
+| 2 | 遅延伝搬 apply(l, r, f) | 済 |
+| 3 | 区間反転 reverse(l, r) と rev フック | 済 |
+| 4 | 区間巡回シフト rotate(l, r, k) | 済 |
 | 5 | 葉のランレングス圧縮 | 未 |
 | 6 | Beats（fail） | 未 |
 
