@@ -74,6 +74,21 @@ T op_cat(T a, T b) {
   return r;
 }
 T e_cat() { return T{}; }
+// 向きで変わる集約なので rev で文字列自体を逆にする
+T rev_cat(T x) {
+  reverse(x.s.begin(), x.s.end());
+  return x;
+}
+using ctree =
+    avl_segtree<T, op_cat, e_cat, avl_segtree_internal::no_lazy,
+                avl_segtree_internal::map_<T>, avl_segtree_internal::comp_,
+                avl_segtree_internal::id_, rev_cat>;
+
+vector<ll> raw2(ltree& t) {
+  vector<ll> r;
+  for (auto& x : t.to_vec()) r.push_back(x.sum);
+  return r;
+}
 
 // to_vec は遅延を配りながら降りるので非 const
 vector<ll> raw(tree& t) {
@@ -369,6 +384,123 @@ int main() {
     report("apply の境界");
   }
 
+  {  // ---- reverse: 和（向きに依らない集約） ----
+    ng = 0;
+    for (int it = 0; it < 200; it++) {
+      int n = 1 + (int)(rng() % 20);
+      vector<ll> a(n);
+      vector<S> v(n);
+      for (int i = 0; i < n; i++) {
+        a[i] = (ll)(rng() % 100) - 50;
+        v[i] = mk(a[i]);
+      }
+      ltree t(v);
+      for (int q = 0; q < 60; q++) {
+        int l = (int)(rng() % (n + 1)), r = (int)(rng() % (n + 1));
+        if (l > r) swap(l, r);
+        std::reverse(a.begin() + l, a.begin() + r);
+        t.reverse(l, r);
+
+        vector<ll> got;
+        for (auto& x : t.to_vec()) got.push_back(x.sum);
+        check(got == a, "reverse 後の列");
+
+        int ql = (int)(rng() % (n + 1)), qr = (int)(rng() % (n + 1));
+        if (ql > qr) swap(ql, qr);
+        ll want = 0;
+        for (int i = ql; i < qr; i++) want += a[i];
+        check(t.prod(ql, qr).sum == want, "reverse 後の prod");
+      }
+    }
+    report("reverse（和）");
+  }
+
+  {  // ---- reverse: 文字列連結（rev が効かないと壊れる） ----
+    ng = 0;
+    for (int it = 0; it < 200; it++) {
+      int n = 1 + (int)(rng() % 14);
+      string a;
+      vector<T> v(n);
+      for (int i = 0; i < n; i++) {
+        char c = char('a' + rng() % 5);
+        a += c;
+        v[i].s = string(1, c);
+      }
+      ctree t(v);
+      for (int q = 0; q < 30; q++) {
+        int l = (int)(rng() % (n + 1)), r = (int)(rng() % (n + 1));
+        if (l > r) swap(l, r);
+        std::reverse(a.begin() + l, a.begin() + r);
+        t.reverse(l, r);
+
+        check(t.all_prod().s == a, "reverse 後の全体");
+        for (int ql = 0; ql <= n; ql++)
+          for (int qr = ql; qr <= n; qr++)
+            check(t.prod(ql, qr).s == a.substr(ql, qr - ql), "部分区間の連結");
+      }
+    }
+    report("reverse（文字列連結 / rev あり）");
+  }
+
+  {  // ---- reverse と apply / insert / erase を混ぜる ----
+    ng = 0;
+    for (int it = 0; it < 200; it++) {
+      vector<ll> a;
+      ltree t;
+      for (int q = 0; q < 100; q++) {
+        int n = (int)a.size();
+        int kind = (int)(rng() % 100);
+        if (kind < 30 || n == 0) {
+          int i = (int)(rng() % (n + 1));
+          ll x = (ll)(rng() % 20) - 10;
+          a.insert(a.begin() + i, x);
+          t.insert(i, mk(x));
+        } else if (kind < 45) {
+          int l = (int)(rng() % (n + 1)), r = (int)(rng() % (n + 1));
+          if (l > r) swap(l, r);
+          a.erase(a.begin() + l, a.begin() + r);
+          t.erase(l, r);
+        } else if (kind < 70) {
+          int l = (int)(rng() % (n + 1)), r = (int)(rng() % (n + 1));
+          if (l > r) swap(l, r);
+          ll f = (ll)(rng() % 11) - 5;
+          for (int i = l; i < r; i++) a[i] += f;
+          t.apply(l, r, f);
+        } else {
+          int l = (int)(rng() % (n + 1)), r = (int)(rng() % (n + 1));
+          if (l > r) swap(l, r);
+          std::reverse(a.begin() + l, a.begin() + r);
+          t.reverse(l, r);
+        }
+        vector<ll> got;
+        for (auto& x : t.to_vec()) got.push_back(x.sum);
+        check(got == a, "reverse と他の操作の混在");
+      }
+    }
+    report("reverse と構造変化の混在");
+  }
+
+  {  // ---- reverse の境界 ----
+    ng = 0;
+    ltree t(vector<S>{mk(1), mk(2), mk(3), mk(4)});
+    t.reverse(1, 1);
+    check(raw2(t) == (vector<ll>{1, 2, 3, 4}), "空区間の reverse");
+    t.reverse(2, 1);
+    check(raw2(t) == (vector<ll>{1, 2, 3, 4}), "l > r の reverse");
+    t.reverse(0, 4);
+    check(raw2(t) == (vector<ll>{4, 3, 2, 1}), "全体 reverse");
+    t.reverse(1, 3);
+    check(raw2(t) == (vector<ll>{4, 2, 3, 1}), "部分 reverse");
+    t.reverse(0, 1);
+    check(raw2(t) == (vector<ll>{4, 2, 3, 1}), "1 要素 reverse は変化なし");
+    // 反転してから作用、作用してから反転
+    ltree u(vector<S>{mk(1), mk(2), mk(3)});
+    u.reverse(0, 3);
+    u.apply(0, 2, 10);
+    check(raw2(u) == (vector<ll>{13, 12, 1}), "反転してから apply");
+    report("reverse の境界");
+  }
+
 #ifdef _GLIBCXX_DEBUG
   puts("速度計測                           : _GLIBCXX_DEBUG のため省略");
 #else
@@ -401,6 +533,15 @@ int main() {
         int l = (int)(rng() % N), r = (int)(rng() % N);
         if (l > r) swap(l, r);
         u.apply(l, r, 1);
+      }
+      check(u.size() == N, "要素数は変わらない");
+    });
+    bench("速度 reverse x2e5", [&] {
+      ltree u(v);
+      for (int q = 0; q < Q; q++) {
+        int l = (int)(rng() % N), r = (int)(rng() % N);
+        if (l > r) swap(l, r);
+        u.reverse(l, r);
       }
       check(u.size() == N, "要素数は変わらない");
     });

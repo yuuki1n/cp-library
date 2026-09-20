@@ -17,6 +17,9 @@ struct no_lazy {};
 template <class S> S map_(no_lazy, S x) { return x; }
 inline no_lazy comp_(no_lazy, no_lazy) { return {}; }
 inline no_lazy id_() { return {}; }
+
+// 既定の rev。和や min のように向きに依らない集約なら何もしなくてよい
+template <class S> S rev_(S x) { return x; }
 }  // namespace avl_segtree_internal
 
 // avl_segtree に載せる値の基底。sz と fail はライブラリが維持する
@@ -26,7 +29,7 @@ struct avl_value {
 };
 
 /*
- * avl_segtree<S, op, e, F, mapping, composition, id> : AVL 木で列を持つ
+ * avl_segtree<S, op, e, F, mapping, composition, id, rev> : AVL 木で列を持つ
  *
  *   avl_segtree(v)     列 v から構築                O(n)
  *   avl_segtree(n)     e() を n 個                  O(n)
@@ -37,18 +40,21 @@ struct avl_value {
  *   set(i, x)          i 番目を x にする            O(log n)
  *   apply(i, f)        i 番目に f を作用させる      O(log n)
  *   apply(l, r, f)     [l, r) に f を作用させる     O(log n)
+ *   reverse(l, r)      [l, r) を逆順にする          O(log n)
  *   get(i)             i 番目                       O(log n)
  *   prod(l, r)         [l, r) の総積                O(log n)
  *   all_prod()         全体の総積                   O(1)
  *   to_vec()           列に戻す                     O(n)
  *   clear()            空にする
  *
- *   添字は 0 始まりの半開区間。l >= r の区間は prod なら e()、erase と apply は
- *   何もしない。
+ *   添字は 0 始まりの半開区間。l >= r の区間は prod なら e()、erase と apply と
+ *   reverse は何もしない。
  *   S は avl_value を継承すると x.sz に要素数が入る（op や mapping の中で
  *   維持しなくてよい）。mapping を呼ぶ前に x.sz へ節点の要素数が入る。
  *   composition(f, g) は「g を適用してから f」。ACL の lazy_segtree と同じ。
  *   作用が要らないなら F 以降は省ける。省いた場合 apply は何もしない。
+ *   rev(x) は x を逆順にしたときの集約値。和や min のように向きに依らないなら
+ *   既定（何もしない）でよい。文字列の連結など向きで変わる集約では指定する。
  *   節点は使い回すので、使うメモリは同時に存在する要素数に比例する。
  *   erase(l, r) は捨てる部分木をたどって節点を回収するので、その節点数ぶん
  *   かかる。今は 1 要素 1 葉なので 2 (r - l) 個。挿入したぶんしか消せないので
@@ -66,6 +72,7 @@ struct avl_value {
  *   avl_segtree<S, op, e, F, mapping, composition, id> t(v);
  *   t.insert(3, x);
  *   t.apply(0, 5, 10);
+ *   t.reverse(1, 4);
  *   print(t.prod(0, 5).sum);
  *
  * verify:
@@ -76,7 +83,8 @@ template <class S, S (*op)(S, S), S (*e)(),
           class F = avl_segtree_internal::no_lazy,
           S (*mapping)(F, S) = avl_segtree_internal::map_<S>,
           F (*composition)(F, F) = avl_segtree_internal::comp_,
-          F (*id)() = avl_segtree_internal::id_>
+          F (*id)() = avl_segtree_internal::id_,
+          S (*rev)(S) = avl_segtree_internal::rev_<S>>
 struct avl_segtree {
  private:
   struct node {
@@ -86,6 +94,7 @@ struct avl_segtree {
     S val;                   // 葉なら自身の値、内部節点なら部分木の総積
     F laz = id();            // 子へまだ配っていない作用
     bool has_laz = false;
+    bool has_rev = false;  // 子へまだ配っていない反転
   };
 
   // 節点はここに置き、必ず int の添字で辿る。
@@ -147,14 +156,31 @@ struct avl_segtree {
     n.has_laz = true;
   }
 
-  // 溜めた作用を子へ配る
+  // 部分木ぜんぶを反転させる
+  void reverse_all(int i) {
+    if (i < 0) return;
+    node& n = pool[i];
+    std::swap(n.lft, n.rht);
+    avl_segtree_internal::set_sz(n.val, n.sz);
+    n.val = rev(n.val);
+    avl_segtree_internal::set_sz(n.val, n.sz);
+    if (n.lft >= 0) n.has_rev = !n.has_rev;
+  }
+
+  // 溜めた作用と反転を子へ配る
   void push(int i) {
-    if (!pool[i].has_laz) return;
-    F f = pool[i].laz;
-    pool[i].has_laz = false;
-    pool[i].laz = id();
-    apply_all(pool[i].lft, f);
-    apply_all(pool[i].rht, f);
+    if (pool[i].has_laz) {
+      F f = pool[i].laz;
+      pool[i].has_laz = false;
+      pool[i].laz = id();
+      apply_all(pool[i].lft, f);
+      apply_all(pool[i].rht, f);
+    }
+    if (pool[i].has_rev) {
+      pool[i].has_rev = false;
+      reverse_all(pool[i].lft);
+      reverse_all(pool[i].rht);
+    }
   }
 
   // 子から自分を作り直す
@@ -368,6 +394,16 @@ struct avl_segtree {
     assert(0 <= l && r <= size());
     if (l >= r) return;
     apply_(root, l, r, f);
+  }
+
+  // [l, r) を逆順にする。l >= r なら何もしない
+  void reverse(int l, int r) {
+    assert(0 <= l && r <= size());
+    if (l >= r) return;
+    auto [a, b] = split_(root, l);
+    auto [c, d] = split_(b, r - l);
+    reverse_all(c);
+    root = merge_(merge_(a, c), d);
   }
 
   S get(int i) {
