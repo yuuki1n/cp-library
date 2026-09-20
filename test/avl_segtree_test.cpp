@@ -80,10 +80,8 @@ T rev_cat(T x) {
   reverse(x.s.begin(), x.s.end());
   return x;
 }
-using ctree =
-    avl_segtree<T, op_cat, e_cat, avl_segtree_internal::no_lazy,
-                avl_segtree_internal::map_<T>, avl_segtree_internal::comp_,
-                avl_segtree_internal::id_, rev_cat>;
+using ctree = avl_segtree<T, op_cat, e_cat, avl_segtree_internal::no_lazy, avl_segtree_internal::map_<T>, avl_segtree_internal::comp_,
+                          avl_segtree_internal::id_, rev_cat>;
 
 /* ---- Segment Tree Beats: 区間 chmin / 区間和 / 区間最大 ---- */
 struct B : avl_value {
@@ -166,8 +164,7 @@ int main() {
         for (int r = l; r <= n; r++) {
           ll s = 0;
           for (int i = l; i < r; i++) s += a[i];
-          check(t.prod(l, r).sum == s,
-                "prod(" + to_string(l) + "," + to_string(r) + ")");
+          check(t.prod(l, r).sum == s, "prod(" + to_string(l) + "," + to_string(r) + ")");
         }
       for (int i = 0; i < n; i++) check(t.get(i).sum == a[i], "get");
     }
@@ -228,8 +225,7 @@ int main() {
       }
       avl_segtree<T, op_cat, e_cat> t(v);
       for (int l = 0; l <= n; l++)
-        for (int r = l; r <= n; r++)
-          check(t.prod(l, r).s == a.substr(l, r - l), "連結の順序");
+        for (int r = l; r <= n; r++) check(t.prod(l, r).s == a.substr(l, r - l), "連結の順序");
       // 挿入しても順序が崩れないか
       for (int q = 0; q < 20; q++) {
         int i = (int)(rng() % (t.size() + 1));
@@ -277,8 +273,7 @@ int main() {
     {  // set / get は木の形を変えない（prod が壊れない）
       tree w(vector<S>{mk(1), mk(2), mk(3), mk(4)});
       w.set(2, mk(30));
-      check(w.get(2).sum == 30 && w.prod(0, 4).sum == 37,
-            "set 後の get / prod");
+      check(w.get(2).sum == 30 && w.prod(0, 4).sum == 37, "set 後の get / prod");
       check(w.to_vec().size() == 4, "set で要素数は変わらない");
       check(w.get(0).sz == 1, "get の sz");
     }
@@ -481,8 +476,7 @@ int main() {
 
         check(t.all_prod().s == a, "reverse 後の全体");
         for (int ql = 0; ql <= n; ql++)
-          for (int qr = ql; qr <= n; qr++)
-            check(t.prod(ql, qr).s == a.substr(ql, qr - ql), "部分区間の連結");
+          for (int qr = ql; qr <= n; qr++) check(t.prod(ql, qr).s == a.substr(ql, qr - ql), "部分区間の連結");
       }
     }
     report("reverse（文字列連結 / rev あり）");
@@ -561,9 +555,10 @@ int main() {
       for (int q = 0; q < 50; q++) {
         int l = (int)(rng() % (n + 1)), r = (int)(rng() % (n + 1));
         if (l > r) swap(l, r);
-        int k = (int)(rng() % 41) - 20;  // 負や r-l 以上も撃つ
+        // k は (-(r-l), r-l) の範囲。負は右回り
+        int k = r - l > 1 ? (int)(rng() % (2 * (r - l) - 1)) - (r - l) + 1 : 0;
         if (r - l > 1) {
-          int m = ((k % (r - l)) + (r - l)) % (r - l);
+          int m = k < 0 ? k + (r - l) : k;
           std::rotate(a.begin() + l, a.begin() + l + m, a.begin() + r);
         }
         t.rotate(l, r, k);
@@ -614,9 +609,9 @@ int main() {
         } else {
           int l = (int)(rng() % (n + 1)), r = (int)(rng() % (n + 1));
           if (l > r) swap(l, r);
-          int k = (int)(rng() % 21) - 10;
+          int k = r - l > 1 ? (int)(rng() % (2 * (r - l) - 1)) - (r - l) + 1 : 0;
           if (r - l > 1) {
-            int m = ((k % (r - l)) + (r - l)) % (r - l);
+            int m = k < 0 ? k + (r - l) : k;
             std::rotate(a.begin() + l, a.begin() + l + m, a.begin() + r);
           }
           t.rotate(l, r, k);
@@ -636,12 +631,12 @@ int main() {
     check(raw2(t) == (vector<ll>{3, 4, 5, 1, 2}), "左へ 2");
     t.rotate(0, 5, -2);
     check(raw2(t) == (vector<ll>{1, 2, 3, 4, 5}), "負なら逆向き（戻る）");
-    t.rotate(0, 5, 5);
-    check(raw2(t) == (vector<ll>{1, 2, 3, 4, 5}), "長さちょうどなら変化なし");
-    t.rotate(0, 5, 7);
-    check(raw2(t) == (vector<ll>{3, 4, 5, 1, 2}), "長さより大きくても丸める");
-    t.rotate(0, 5, -7);
-    check(raw2(t) == (vector<ll>{1, 2, 3, 4, 5}), "負で大きくても丸める");
+    t.rotate(0, 5, 4);
+    check(raw2(t) == (vector<ll>{5, 1, 2, 3, 4}), "端まで左へ");
+    t.rotate(0, 5, -4);
+    check(raw2(t) == (vector<ll>{1, 2, 3, 4, 5}), "端まで右へ（戻る）");
+    t.rotate(0, 5, 0);
+    check(raw2(t) == (vector<ll>{1, 2, 3, 4, 5}), "k = 0 は何もしない");
     t.rotate(1, 4, 1);
     check(raw2(t) == (vector<ll>{1, 3, 4, 2, 5}), "部分区間");
     t.rotate(2, 3, 1);
@@ -743,9 +738,9 @@ int main() {
         } else {
           int l = (int)(rng() % (n + 1)), r = (int)(rng() % (n + 1));
           if (l > r) swap(l, r);
-          int k = (int)(rng() % 9) - 4;
+          int k = r - l > 1 ? (int)(rng() % (2 * (r - l) - 1)) - (r - l) + 1 : 0;
           if (r - l > 1) {
-            int m = ((k % (r - l)) + (r - l)) % (r - l);
+            int m = k < 0 ? k + (r - l) : k;
             std::rotate(a.begin() + l, a.begin() + l + m, a.begin() + r);
           }
           t.rotate(l, r, k);
@@ -772,8 +767,7 @@ int main() {
       for (int i = 0; i < k; i++) want += "ab";
       check(t.all_prod().s == want, "ab を " + to_string(k) + " 個");
       check(t.prod(0, k).s == want, "prod で全体");
-      if (k >= 2)
-        check(t.prod(1, k - 1).s == want.substr(2, (k - 2) * 2), "prod で一部");
+      if (k >= 2) check(t.prod(1, k - 1).s == want.substr(2, (k - 2) * 2), "prod で一部");
     }
     report("まとまった葉の冪（文字列連結）");
   }
@@ -874,10 +868,7 @@ int main() {
     auto bench = [&](const char* name, auto f) {
       auto st = chrono::steady_clock::now();
       f();
-      printf("%-34s : %lld ms\n", name,
-             (ll)chrono::duration_cast<chrono::milliseconds>(
-                 chrono::steady_clock::now() - st)
-                 .count());
+      printf("%-34s : %lld ms\n", name, (ll)chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - st).count());
     };
     vector<S> v(N);
     for (int i = 0; i < N; i++) v[i] = mk(i);
@@ -915,14 +906,13 @@ int main() {
       for (int q = 0; q < Q; q++) {
         int l = (int)(rng() % N), r = (int)(rng() % N);
         if (l > r) swap(l, r);
-        u.rotate(l, r, (int)(rng() % 1000) - 500);
+        u.rotate(l, r, r - l > 1 ? (int)(rng() % (r - l)) : 0);
       }
       check(u.size() == N, "要素数は変わらない");
     });
     bench("速度 insert x2e5", [&] {
       tree u;
-      for (int q = 0; q < Q; q++)
-        u.insert((int)(rng() % (u.size() + 1)), mk(1));
+      for (int q = 0; q < Q; q++) u.insert((int)(rng() % (u.size() + 1)), mk(1));
       check(u.size() == Q, "全部入る");
     });
   }

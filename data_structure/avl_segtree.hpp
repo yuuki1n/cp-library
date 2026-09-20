@@ -10,19 +10,6 @@ concept HasSz = requires(S x) { x.sz; };
 template <class S>
 concept HasFail = requires(S x) { x.fail; };
 
-template <class S> void set_sz(S& x, int n) {
-  if constexpr (HasSz<S>) x.sz = n;
-}
-template <class S> void set_fail(S& x, bool b) {
-  if constexpr (HasFail<S>) x.fail = b;
-}
-template <class S> bool failed(const S& x) {
-  if constexpr (HasFail<S>)
-    return x.fail;
-  else
-    return false;
-}
-
 // 作用を使わないときの既定。F を指定したら mapping 以降も全部指定する
 struct no_lazy {};
 template <class S> S map_(no_lazy, S x) { return x; }
@@ -61,27 +48,33 @@ struct avl_value {
  *   to_vec()           列に戻す                     O(n)
  *   clear()            空にする
  *
- *   添字は 0 始まりの半開区間。l >= r の区間は prod なら e()、erase と apply と
- *   reverse は何もしない。rotate は k を r - l で丸めるので負でも大きくてもよい。
- *   S は avl_value を継承すると x.sz に要素数が入る（op や mapping の中で
- *   維持しなくてよい）。mapping を呼ぶ前に x.sz へ要素数が入る。
- *   composition(f, g) は「g を適用してから f」。ACL の lazy_segtree と同じ。
- *   作用が要らないなら F 以降は省ける。省いた場合 apply は何もしない。
- *   rev(x) は x を逆順にしたときの集約値。和や min のように向きに依らないなら
- *   既定（何もしない）でよい。文字列の連結など向きで変わる集約では指定する。
+ * 区間の約束:
+ *   - 添字は 0 始まりの半開区間 [l, r)
+ *   - l >= r は prod が e()、他（erase / apply / reverse / rotate）は何もしない
+ *   - rotate の k は |k| < r - l であること。負を渡すと右へ回る
  *
- *   区間 chmin のように「まとめて適用できないことがある」作用（Segment Tree
- *   Beats）は、mapping の中で x.fail = true を立てる。ライブラリが子へ降りて
- *   から作り直す。1 要素への作用は必ず適用できること（降りる先が無いため）。
+ * S に求めること:
+ *   - avl_value を継承すると x.sz に要素数が入る。op や mapping で維持しない
+ *   - mapping を呼ぶ前に x.sz へ要素数が入っている
+ *   - rev(x) は逆順にしたときの集約値。和や min なら既定のまま。
+ *     文字列の連結など向きで変わるものだけ指定する
  *
- *   葉は「同じ値が k 個」をまとめて持つ。avl_segtree(n) や insert(i, x, k) が
- *   節点 1 個で済み、触られるまで分かれない。そのぶん、まとまった葉の総積を
- *   読むときだけ op を O(log k) 回呼ぶ。
- *   要素数は int に収まる範囲まで。to_vec() だけは要素の数ぶん作るので、
- *   まとまった葉を大きく取ったまま呼ぶとメモリを食う。
- *   節点は使い回すので、使うメモリは同時に存在する葉の数に比例する。
- *   erase(l, r) は捨てる部分木をたどって節点を回収するので、その節点数ぶん
- *   かかる。挿入したぶんしか消せないのでならし計算量は O(log n) のまま。
+ * F に求めること:
+ *   - composition(f, g) は「g を適用してから f」。ACL の lazy_segtree と同じ
+ *   - 要らなければ F 以降を省ける。省くと apply は何もしない
+ *   - 区間 chmin のようにまとめて適用できないことがあるなら（Beats）、
+ *     mapping の中で x.fail = true を立てる。ライブラリが子へ降りて作り直す。
+ *     1 要素への作用は必ず適用できること（降りる先が無いため）
+ *
+ * 葉のまとめ方:
+ *   - 葉は「同じ値が k 個」を持つ。avl_segtree(n) や insert(i, x, k) が節点 1 個
+ *     で済み、触られるまで分かれない
+ *   - まとまった葉の総積を読むときだけ op を O(log k) 回呼ぶ
+ *   - 節点は使い回すので、メモリは同時に存在する葉の数に比例する
+ *   - erase(l, r) は捨てる部分木をたどるので、その節点数ぶんかかる。挿入した
+ *     ぶんしか消せないのでならし計算量は O(log n) のまま
+ *   - 要素数は int に収まる範囲まで。to_vec() は要素の数ぶん作るので、
+ *     まとまった葉を大きく取ったまま呼ぶとメモリを食う
  *
  * 使用例:
  *   struct S : avl_value { ll sum = 0; };
@@ -102,11 +95,8 @@ struct avl_value {
  * verify:
  *   https://judge.yosupo.jp/problem/dynamic_sequence_range_affine_range_sum
  */
-template <class S, S (*op)(S, S), S (*e)(),
-          class F = avl_segtree_internal::no_lazy,
-          S (*mapping)(F, S) = avl_segtree_internal::map_<S>,
-          F (*composition)(F, F) = avl_segtree_internal::comp_,
-          F (*id)() = avl_segtree_internal::id_,
+template <class S, S (*op)(S, S), S (*e)(), class F = avl_segtree_internal::no_lazy, S (*mapping)(F, S) = avl_segtree_internal::map_<S>,
+          F (*composition)(F, F) = avl_segtree_internal::comp_, F (*id)() = avl_segtree_internal::id_,
           S (*rev)(S) = avl_segtree_internal::rev_<S>>
 struct avl_segtree {
  private:
@@ -126,13 +116,28 @@ struct avl_segtree {
   std::vector<int> free_;  // 使い終わった節点の添字
   int root = -1;
 
+  /* ---- S の sz / fail を触る。持たない型なら何もしない ---- */
+
+  static constexpr bool has_sz_ = avl_segtree_internal::HasSz<S>;
+  static constexpr bool has_fail_ = avl_segtree_internal::HasFail<S>;
+
+  static void set_sz(S& x, int n) {
+    if constexpr (has_sz_) x.sz = n;
+  }
+  static void set_fail(S& x, bool b) {
+    if constexpr (has_fail_) x.fail = b;
+  }
+  static bool failed(const S& x) {
+    if constexpr (has_fail_) return x.fail;
+    return false;
+  }
+
   /* ---- 確保と解放 ---- */
 
   int alloc() {
-    int i;
+    int i = (int)pool.size();
     if (free_.empty()) {
       pool.push_back(node{});
-      i = (int)pool.size() - 1;
     } else {
       i = free_.back();
       free_.pop_back();
@@ -159,14 +164,14 @@ struct avl_segtree {
     int i = alloc();
     pool[i].val = v;
     pool[i].sz = k;
-    avl_segtree_internal::set_sz(pool[i].val, 1);
+    set_sz(pool[i].val, 1);
     return i;
   }
 
   // 空の値。e() は sz を 1 のまま返しうるので 0 に直す
   static S zero_() {
     S x = e();
-    avl_segtree_internal::set_sz(x, 0);
+    set_sz(x, 0);
     return x;
   }
 
@@ -174,25 +179,26 @@ struct avl_segtree {
   static S pow_(const S& a, int n) {
     if (n <= 0) return zero_();
     S x = a;
-    avl_segtree_internal::set_sz(x, 1);
+    set_sz(x, 1);
     if (n == 1) return x;
     S r = zero_();
     int rn = 0, xn = 1;
     while (n) {
       if (n & 1) {
         r = rn == 0 ? x : op(r, x);
-        rn += xn;
-        avl_segtree_internal::set_sz(r, rn);
+        set_sz(r, rn += xn);
       }
       n >>= 1;
       if (n) {
         x = op(x, x);
-        xn *= 2;
-        avl_segtree_internal::set_sz(x, xn);
+        set_sz(x, xn *= 2);
       }
     }
     return r;
   }
+
+  // d < 0 で左の子、d > 0 で右の子。確保をまたいで持ち越さないこと
+  int& child_(int i, int d) { return d < 0 ? pool[i].lft : pool[i].rht; }
 
   int sz_(int i) const { return i < 0 ? 0 : pool[i].sz; }
   int rnk_(int i) const { return i < 0 ? 0 : pool[i].rnk; }
@@ -221,18 +227,18 @@ struct avl_segtree {
     if (i < 0) return;
     // 葉は 1 要素ぶんの値を持つので、作用もその単位でかける
     int m = pool[i].lft < 0 ? 1 : pool[i].sz;
-    avl_segtree_internal::set_sz(pool[i].val, m);
-    avl_segtree_internal::set_fail(pool[i].val, false);
+    set_sz(pool[i].val, m);
+    set_fail(pool[i].val, false);
     pool[i].val = mapping(f, pool[i].val);
-    avl_segtree_internal::set_sz(pool[i].val, m);
+    set_sz(pool[i].val, m);
     if (pool[i].lft < 0) {
       // 1 要素への作用は必ず適用できること。降りる先が無いため
-      assert(!avl_segtree_internal::failed(pool[i].val));
+      assert(!failed(pool[i].val));
       return;
     }
     pool[i].laz = pool[i].has_laz ? composition(f, pool[i].laz) : f;
     pool[i].has_laz = true;
-    if (avl_segtree_internal::failed(pool[i].val)) {
+    if (failed(pool[i].val)) {
       // まとめて適用できなかった。子へ配ってから作り直す
       push(i);
       update(i);
@@ -244,15 +250,15 @@ struct avl_segtree {
     if (i < 0) return;
     node& n = pool[i];
     if (n.lft < 0) {  // 同じ値が並ぶだけなので並び順は変わらない
-      avl_segtree_internal::set_sz(n.val, 1);
+      set_sz(n.val, 1);
       n.val = rev(n.val);
-      avl_segtree_internal::set_sz(n.val, 1);
+      set_sz(n.val, 1);
       return;
     }
     std::swap(n.lft, n.rht);
-    avl_segtree_internal::set_sz(n.val, n.sz);
+    set_sz(n.val, n.sz);
     n.val = rev(n.val);
-    avl_segtree_internal::set_sz(n.val, n.sz);
+    set_sz(n.val, n.sz);
     n.has_rev = !n.has_rev;
   }
 
@@ -279,46 +285,33 @@ struct avl_segtree {
     n.sz = sz_(n.lft) + sz_(n.rht);
     n.rnk = std::max(rnk_(n.lft), rnk_(n.rht)) + 1;
     n.val = op(agg_(n.lft), agg_(n.rht));
-    avl_segtree_internal::set_sz(n.val, n.sz);
+    set_sz(n.val, n.sz);
     // 節点に持つ値は必ず fail を下ろしておく。op が入力を使い回しても残らない
-    avl_segtree_internal::set_fail(n.val, false);
+    set_fail(n.val, false);
     return i;
   }
 
   /* ---- 平衡 ---- */
 
-  int rotate_l(int i) {
-    int r = pool[i].rht;
-    push(r);
-    pool[i].rht = pool[r].lft;
-    pool[r].lft = update(i);
-    return update(r);
-  }
-  int rotate_r(int i) {
-    int l = pool[i].lft;
-    push(l);
-    pool[i].lft = pool[l].rht;
-    pool[l].rht = update(i);
-    return update(l);
+  // d 方向へ回す。d > 0 なら左回転（右の子を持ち上げる）
+  int rot_(int i, int d) {
+    int c = child_(i, d);
+    push(c);
+    child_(i, d) = child_(c, -d);
+    child_(c, -d) = update(i);
+    return update(c);
   }
 
   // 高さの差を 1 以下に戻す
   int balance(int i) {
     update(i);
     int d = rnk_(pool[i].rht) - rnk_(pool[i].lft);
-    if (d > 1) {
-      int r = pool[i].rht;
-      push(r);
-      if (rnk_(pool[r].lft) > rnk_(pool[r].rht)) pool[i].rht = rotate_r(r);
-      return rotate_l(i);
-    }
-    if (d < -1) {
-      int l = pool[i].lft;
-      push(l);
-      if (rnk_(pool[l].rht) > rnk_(pool[l].lft)) pool[i].lft = rotate_l(l);
-      return rotate_r(i);
-    }
-    return i;
+    if (-1 <= d && d <= 1) return i;
+    int s = d > 0 ? 1 : -1, c = child_(i, s);  // s は深い側
+    push(c);
+    // 深い側の子が逆向きに伸びていたら、先にそちらを回す
+    if (rnk_(child_(c, -s)) > rnk_(child_(c, s))) child_(i, s) = rot_(c, -s);
+    return rot_(i, s);
   }
 
   /* ---- つなぐ・切る ---- */
@@ -363,6 +356,14 @@ struct avl_segtree {
     return {l, r};
   }
 
+  // [l, r) を切り出して f に渡し、返ってきた部分木をつなぎ直す。
+  // f は受け取った部分木を好きにしてよく、要らなければ -1 を返す
+  template <class Fn> void on_range_(int l, int r, Fn f) {
+    auto [a, b] = split_(root, l);
+    auto [c, d] = split_(b, r - l);
+    root = merge_(merge_(a, f(c)), d);
+  }
+
   /* ---- 木をたどる ---- */
 
   int build_(const std::vector<S>& v, int l, int r) {
@@ -388,11 +389,8 @@ struct avl_segtree {
       }
     }
     push(i);
-    int ls = sz_(pool[i].lft);
-    if (k < ls)
-      pool[i].lft = insert_(pool[i].lft, k, x, cnt);
-    else
-      pool[i].rht = insert_(pool[i].rht, k - ls, x, cnt);
+    int ls = sz_(pool[i].lft), d = k < ls ? -1 : 1;
+    child_(i, d) = insert_(child_(i, d), d < 0 ? k : k - ls, x, cnt);
     return balance(i);
   }
 
@@ -407,24 +405,14 @@ struct avl_segtree {
       return -1;
     }
     push(i);
-    int ls = sz_(pool[i].lft);
-    if (k < ls) {
-      int t = erase_(pool[i].lft, k);
-      if (t < 0) {  // 左が消えたので右の子を親の位置へ繰り上げる
-        int r = pool[i].rht;
-        kill(i);
-        return r;
-      }
-      pool[i].lft = t;
-    } else {
-      int t = erase_(pool[i].rht, k - ls);
-      if (t < 0) {
-        int l = pool[i].lft;
-        kill(i);
-        return l;
-      }
-      pool[i].rht = t;
+    int ls = sz_(pool[i].lft), d = k < ls ? -1 : 1;
+    int t = erase_(child_(i, d), d < 0 ? k : k - ls);
+    if (t < 0) {  // 片方が消えたので、もう片方を親の位置へ繰り上げる
+      int sib = child_(i, -d);
+      kill(i);
+      return sib;
     }
+    child_(i, d) = t;
     return balance(i);
   }
 
@@ -433,17 +421,14 @@ struct avl_segtree {
     if (pool[i].lft < 0) {
       if (pool[i].sz == 1) {
         pool[i].val = x;
-        avl_segtree_internal::set_sz(pool[i].val, 1);
+        set_sz(pool[i].val, 1);
         return i;
       }
       split_leaf(i, k > 0 ? k : 1);
     }
     push(i);
-    int ls = sz_(pool[i].lft);
-    if (k < ls)
-      pool[i].lft = set_(pool[i].lft, k, x);
-    else
-      pool[i].rht = set_(pool[i].rht, k - ls, x);
+    int ls = sz_(pool[i].lft), d = k < ls ? -1 : 1;
+    child_(i, d) = set_(child_(i, d), d < 0 ? k : k - ls, x);
     return balance(i);
   }
 
@@ -458,8 +443,7 @@ struct avl_segtree {
     push(i);
     int ls = sz_(pool[i].lft);
     if (l < ls) pool[i].lft = apply_(pool[i].lft, l, std::min(ls, r), f);
-    if (ls < r)
-      pool[i].rht = apply_(pool[i].rht, std::max(0, l - ls), r - ls, f);
+    if (ls < r) pool[i].rht = apply_(pool[i].rht, std::max(0, l - ls), r - ls, f);
     return balance(i);
   }
 
@@ -476,7 +460,7 @@ struct avl_segtree {
       x = prod_(pool[i].rht, l - ls, r - ls);
     else
       x = op(prod_(pool[i].lft, l, ls), prod_(pool[i].rht, 0, r - ls));
-    avl_segtree_internal::set_sz(x, r - l);
+    set_sz(x, r - l);
     return x;
   }
 
@@ -484,7 +468,7 @@ struct avl_segtree {
     if (i < 0) return;
     if (pool[i].lft < 0) {
       S v = pool[i].val;
-      avl_segtree_internal::set_sz(v, 1);
+      set_sz(v, 1);
       out.insert(out.end(), (size_t)pool[i].sz, v);
       return;
     }
@@ -532,10 +516,10 @@ struct avl_segtree {
   void erase(int l, int r) {
     assert(0 <= l && r <= size());
     if (l >= r) return;
-    auto [a, b] = split_(root, l);
-    auto [c, d] = split_(b, r - l);
-    kill_tree(c);
-    root = merge_(a, d);
+    on_range_(l, r, [&](int c) {
+      kill_tree(c);
+      return -1;
+    });
   }
 
   // i 番目を x にする
@@ -560,24 +544,25 @@ struct avl_segtree {
   void reverse(int l, int r) {
     assert(0 <= l && r <= size());
     if (l >= r) return;
-    auto [a, b] = split_(root, l);
-    auto [c, d] = split_(b, r - l);
-    reverse_all(c);
-    root = merge_(merge_(a, c), d);
+    on_range_(l, r, [&](int c) {
+      reverse_all(c);
+      return c;
+    });
   }
 
   // [l, r) を左へ k だけ巡回させる。l + k 番目が l 番目に来る。
-  // k は負でも r - l 以上でもよい。長さ 1 以下なら何もしない
+  // 負を渡すと右へ回る。長さ 1 以下なら何もしない
   void rotate(int l, int r, int k) {
     assert(0 <= l && r <= size());
     int n = r - l;
     if (n <= 1) return;
-    k = ((k % n) + n) % n;
+    assert(-n < k && k < n);  // 丸めない。範囲外は呼び出し側の間違い
+    if (k < 0) k += n;
     if (k == 0) return;
-    auto [a, b] = split_(root, l);
-    auto [c, d] = split_(b, n);
-    auto [c1, c2] = split_(c, k);
-    root = merge_(merge_(a, merge_(c2, c1)), d);
+    on_range_(l, r, [&](int c) {
+      auto [head, tail] = split_(c, k);  // 前 k 個を後ろへ回す
+      return merge_(tail, head);
+    });
   }
 
   S get(int i) {
