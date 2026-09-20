@@ -11,7 +11,7 @@
  *   same(a, b) / size(x)
  *   group_count()   連結成分の個数
  *   vertex_count()  今までに足した頂点の個数
- *   group(x)        同じ成分のキー         O(log n + |成分|)
+ *   group(x)        同じ成分のキー         O((log n) + |成分|)
  *   groups()        連結成分ごとのキー     O(n)
  *   id(x)           内部番号（無ければ足す）
  *   clear()         構築直後に戻す（頂点もすべて捨てる）

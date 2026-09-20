@@ -14,8 +14,8 @@ Java 版の資産を C++ に移し替えていく。このファイルはコミ�
 移植の進み具合と verify の進み具合は別物なので、それぞれ分けて数えている。
 
 - **移植済み** 17 / 77（うち verify 済み **0**）
-- **移植不要** 28 / 77（ACL 16・標準ライブラリ 10・対象外 2）
-- **残り** 32 / 77（高 6・中 16・低 10）
+- **移植不要** 29 / 77（ACL 16・標準ライブラリ 10・対象外 3）
+- **残り** 31 / 77（高 7・中 16・低 8）
 
 ---
 
@@ -87,6 +87,7 @@ Java に無い追加分（未 verify）:
 |---|---|
 | `graph/unionfind/PersistentUnionFind` | 移植しない方針 |
 | `dataStructure/rangeData/base/BaseV` | Java の抽象クラス基盤。C++ ではテンプレート引数で済む |
+| `dataStructure/.../AVLSegmentTreeLong` | `AVLSegmentTree` の long 特殊化。C++ ではテンプレートで型を切り替えられる |
 
 ---
 
@@ -105,6 +106,7 @@ Java に無い追加分（未 verify）:
 | `other/Grid` | `util/grid.hpp` | 2 次元グリッドの添字変換と 4/8 近傍 |
 | スニペット `zAlgo` | `string/z_algorithm.hpp` | Z-algorithm。ACL に無い |
 | スニペット `mo`（`Mo`） | `util/mo.hpp` | Mo's algorithm。クラス 59 行 + 使用例 78 行 |
+| `dataStructure/.../AVLSegmentTree` | `data_structure/avl_segtree.hpp` | AVL 木で列を持つ。挿入・削除・区間反転・区間巡回シフトができる遅延セグ木 |
 
 ### 中
 
@@ -132,7 +134,6 @@ Java に無い追加分（未 verify）:
 | 元 | 想定ファイル名 | 内容 |
 |---|---|---|
 | `dataStructure/AVLTree` | `data_structure/avl_tree.hpp` | 順序統計木。`std::set` + BIT で代用できることが多い |
-| `dataStructure/.../AVLSegmentTree` `AVLSegmentTreeLong` | — | 306 行。必要になってから |
 | `dataStructure/.../PersistentSegmentTree` | `data_structure/persistent_segtree.hpp` | |
 | `dataStructure/PersistentArray` | `data_structure/persistent_array.hpp` | |
 | `dataStructure/PriorityDeque` | `data_structure/priority_deque.hpp` | 両端優先度付きキュー |
@@ -140,6 +141,41 @@ Java に無い追加分（未 verify）:
 | `dataStructure/rangeData/RangeTree` | `data_structure/range_tree.hpp` | |
 | `math/RelaxedNTT` | `math/relaxed_convolution.hpp` | オンライン畳み込み |
 | スニペット `trans` | `util/transpose.hpp` | 行列の転置。4 つの型ごとにオーバーロードされている |
+
+---
+
+## avl_segtree の仕様
+
+`AVLSegmentTree.java`（306 行）の移植。決めたことを残しておく。
+
+- **型** `avl_segtree<S, op, e, F, mapping, composition, id, rev>`。
+  ACL の `lazy_segtree` と同じ並びで、末尾に反転時の値の直し `rev` を足す
+- **`avl_value`** を継承した型を載せる。`int sz` と `bool fail` を持つ基底で、
+  どちらもライブラリが維持する。ユーザーは `op` の中で `sz` を触らない
+- **`mapping` は ACL と同じ `S mapping(F f, S x)`**。`x.sz` には呼ぶ前に
+  節点の要素数が入っている
+- **Beats** は `mapping` の中で `x.fail = true` を立てる。ライブラリが検知して
+  子へ降りる。`sz` / `fail` の有無は concept で見るので、持たない型も載せられる
+- **節点は `std::vector<node>` のプールに置き、`int` の添字で辿る**。
+  ポインタや参照で持つと `push_back` の再確保で無効になる
+- 葉は「同じ値 k 個」を持てる（ランレングス）。`avl_segtree(n)` が O(1)
+
+段階を分けて進める。
+
+| 段階 | 内容 | 状態 |
+|---|---|---|
+| 1 | AVL の骨格（merge / split / balance）+ build / insert / erase / get / prod / size | 済 |
+| 2 | 遅延伝搬 apply(l, r, f) | 未 |
+| 3 | 区間反転 reverse(l, r) と rev フック | 未 |
+| 4 | 区間巡回シフト rotate(l, r, k) | 未 |
+| 5 | 葉のランレングス圧縮 | 未 |
+| 6 | Beats（fail） | 未 |
+
+全段階が終わるまでは「移植済み」に数えず、ここで進み具合を見る。
+
+段階 3 まで終われば
+[dynamic_sequence_range_affine_range_sum](https://judge.yosupo.jp/problem/dynamic_sequence_range_affine_range_sum)
+で verify できる。
 
 ---
 

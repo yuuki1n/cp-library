@@ -11,7 +11,7 @@
  *   undo()        直前の merge を 1 回取り消す              O(1)
  *   snapshot()    今までに呼んだ merge の回数
  *   rollback(t)   merge を t 回呼んだ時点まで戻す
- *   group(x)      x と同じ成分の頂点     O(log n + |成分|)
+ *   group(x)      x と同じ成分の頂点     O((log n) + |成分|)
  *   groups()      連結成分ごとの頂点     O(n log n)
  *   leader / same / size                                   O(log n)
  *   group_count()                                          O(1)
