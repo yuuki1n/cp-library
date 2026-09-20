@@ -5,6 +5,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <climits>
 #include <cstdio>
 #include <random>
 #include <string>
