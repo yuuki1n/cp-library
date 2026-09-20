@@ -84,6 +84,51 @@ using ctree =
                 avl_segtree_internal::map_<T>, avl_segtree_internal::comp_,
                 avl_segtree_internal::id_, rev_cat>;
 
+/* ---- Segment Tree Beats: 区間 chmin / 区間和 / 区間最大 ---- */
+struct B : avl_value {
+  ll sum = 0;
+  ll mx = LLONG_MIN / 4;   // 最大値
+  ll mx2 = LLONG_MIN / 4;  // 2 番目に大きい値（最大値と異なるもの）
+  int cnt = 0;             // 最大値の個数
+};
+B op_b(B a, B b) {
+  B r;
+  r.sum = a.sum + b.sum;
+  r.mx = max(a.mx, b.mx);
+  r.cnt = (a.mx == r.mx ? a.cnt : 0) + (b.mx == r.mx ? b.cnt : 0);
+  r.mx2 = max(a.mx == r.mx ? a.mx2 : a.mx, b.mx == r.mx ? b.mx2 : b.mx);
+  return r;
+}
+B e_b() { return B{}; }
+// f より大きい要素を f にする
+B map_b(ll f, B x) {
+  if (x.mx <= f) return x;  // 何も変わらない
+  if (x.mx2 < f) {          // 最大値だけが下がる
+    x.sum -= (x.mx - f) * x.cnt;
+    x.mx = f;
+    return x;
+  }
+  x.fail = true;  // まとめて適用できない
+  return x;
+}
+ll comp_b(ll f, ll g) { return min(f, g); }
+ll id_b() { return LLONG_MAX / 4; }
+using btree = avl_segtree<B, op_b, e_b, ll, map_b, comp_b, id_b>;
+
+B mkb(ll v) {
+  B x;
+  x.sum = v;
+  x.mx = v;
+  x.cnt = 1;
+  return x;
+}
+
+vector<ll> raw2(btree& t) {
+  vector<ll> r;
+  for (auto& x : t.to_vec()) r.push_back(x.sum);
+  return r;
+}
+
 vector<ll> raw2(ltree& t) {
   vector<ll> r;
   for (auto& x : t.to_vec()) r.push_back(x.sum);
@@ -730,6 +775,94 @@ int main() {
         check(t.prod(1, k - 1).s == want.substr(2, (k - 2) * 2), "prod で一部");
     }
     report("まとまった葉の冪（文字列連結）");
+  }
+
+  {  // ---- Beats: 区間 chmin を素朴な実装と突き合わせる ----
+    ng = 0;
+    for (int it = 0; it < 300; it++) {
+      int n = 1 + (int)(rng() % 20);
+      vector<ll> a(n);
+      vector<B> v(n);
+      for (int i = 0; i < n; i++) {
+        a[i] = (ll)(rng() % 50);
+        v[i] = mkb(a[i]);
+      }
+      btree t(v);
+      for (int q = 0; q < 60; q++) {
+        int l = (int)(rng() % (n + 1)), r = (int)(rng() % (n + 1));
+        if (l > r) swap(l, r);
+        ll f = (ll)(rng() % 50);
+        for (int i = l; i < r; i++) a[i] = min(a[i], f);
+        t.apply(l, r, f);
+
+        check(raw2(t) == a, "chmin 後の列");
+        int ql = (int)(rng() % (n + 1)), qr = (int)(rng() % (n + 1));
+        if (ql > qr) swap(ql, qr);
+        ll ws = 0, wm = LLONG_MIN / 4;
+        for (int i = ql; i < qr; i++) {
+          ws += a[i];
+          wm = max(wm, a[i]);
+        }
+        auto got = t.prod(ql, qr);
+        check(got.sum == ws, "chmin 後の区間和");
+        check(qr <= ql || got.mx == wm, "chmin 後の区間最大");
+      }
+    }
+    report("Beats（区間 chmin）");
+  }
+
+  {  // ---- Beats と構造変化を混ぜる ----
+    ng = 0;
+    for (int it = 0; it < 200; it++) {
+      vector<ll> a;
+      btree t;
+      for (int q = 0; q < 80; q++) {
+        int n = (int)a.size();
+        int kind = (int)(rng() % 100);
+        if (kind < 30 || n == 0) {
+          int i = (int)(rng() % (n + 1));
+          ll x = (ll)(rng() % 40);
+          a.insert(a.begin() + i, x);
+          t.insert(i, mkb(x));
+        } else if (kind < 45) {
+          int i = (int)(rng() % n);
+          a.erase(a.begin() + i);
+          t.erase(i);
+        } else if (kind < 75) {
+          int l = (int)(rng() % (n + 1)), r = (int)(rng() % (n + 1));
+          if (l > r) swap(l, r);
+          ll f = (ll)(rng() % 40);
+          for (int i = l; i < r; i++) a[i] = min(a[i], f);
+          t.apply(l, r, f);
+        } else {
+          int l = (int)(rng() % (n + 1)), r = (int)(rng() % (n + 1));
+          if (l > r) swap(l, r);
+          std::reverse(a.begin() + l, a.begin() + r);
+          t.reverse(l, r);
+        }
+        check(raw2(t) == a, "Beats と構造変化の混在");
+        ll all = 0;
+        for (ll x : a) all += x;
+        check(t.all_prod().sum == all, "全体の和");
+      }
+    }
+    report("Beats と構造変化の混在");
+  }
+
+  {  // ---- Beats: まとまった葉と組み合わせる ----
+    ng = 0;
+    const int BIG = 1000000;
+    btree t(BIG, mkb(100));
+    check(t.all_prod().sum == 100LL * BIG, "まとめて構築");
+    t.apply(0, BIG, 50);  // 全部 50 に
+    check(t.all_prod().sum == 50LL * BIG, "全体 chmin");
+    t.apply(10, 20, 5);  // 途中だけ 5 に。葉が割れる
+    check(t.prod(10, 20).sum == 50, "割れた区間");
+    check(t.prod(0, 10).sum == 500, "割れた左");
+    check(t.all_prod().sum == 50LL * BIG - 450, "割った後の全体");
+    check(t.prod(0, BIG).mx == 50, "全体の最大");
+    check(t.prod(10, 20).mx == 5, "割れた区間の最大");
+    report("Beats とまとまった葉");
   }
 
 #ifdef _GLIBCXX_DEBUG

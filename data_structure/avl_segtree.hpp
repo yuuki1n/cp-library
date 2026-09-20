@@ -7,9 +7,20 @@ namespace avl_segtree_internal {
 // S が sz / fail を持つか。持たない型でも載せられるようにする
 template <class S>
 concept HasSz = requires(S x) { x.sz; };
+template <class S>
+concept HasFail = requires(S x) { x.fail; };
 
 template <class S> void set_sz(S& x, int n) {
   if constexpr (HasSz<S>) x.sz = n;
+}
+template <class S> void set_fail(S& x, bool b) {
+  if constexpr (HasFail<S>) x.fail = b;
+}
+template <class S> bool failed(const S& x) {
+  if constexpr (HasFail<S>)
+    return x.fail;
+  else
+    return false;
 }
 
 // 作用を使わないときの既定。F を指定したら mapping 以降も全部指定する
@@ -58,6 +69,10 @@ struct avl_value {
  *   作用が要らないなら F 以降は省ける。省いた場合 apply は何もしない。
  *   rev(x) は x を逆順にしたときの集約値。和や min のように向きに依らないなら
  *   既定（何もしない）でよい。文字列の連結など向きで変わる集約では指定する。
+ *
+ *   区間 chmin のように「まとめて適用できないことがある」作用（Segment Tree
+ *   Beats）は、mapping の中で x.fail = true を立てる。ライブラリが子へ降りて
+ *   から作り直す。1 要素への作用は必ず適用できること（降りる先が無いため）。
  *
  *   葉は「同じ値が k 個」をまとめて持つ。avl_segtree(n) や insert(i, x, k) が
  *   節点 1 個で済み、触られるまで分かれない。そのぶん、まとまった葉の総積を
@@ -204,15 +219,24 @@ struct avl_segtree {
   // 部分木ぜんぶに f を作用させる
   void apply_all(int i, const F& f) {
     if (i < 0) return;
-    node& n = pool[i];
     // 葉は 1 要素ぶんの値を持つので、作用もその単位でかける
-    int m = n.lft < 0 ? 1 : n.sz;
-    avl_segtree_internal::set_sz(n.val, m);
-    n.val = mapping(f, n.val);
-    avl_segtree_internal::set_sz(n.val, m);
-    if (n.lft < 0) return;  // 葉は配る先が無い
-    n.laz = n.has_laz ? composition(f, n.laz) : f;
-    n.has_laz = true;
+    int m = pool[i].lft < 0 ? 1 : pool[i].sz;
+    avl_segtree_internal::set_sz(pool[i].val, m);
+    avl_segtree_internal::set_fail(pool[i].val, false);
+    pool[i].val = mapping(f, pool[i].val);
+    avl_segtree_internal::set_sz(pool[i].val, m);
+    if (pool[i].lft < 0) {
+      // 1 要素への作用は必ず適用できること。降りる先が無いため
+      assert(!avl_segtree_internal::failed(pool[i].val));
+      return;
+    }
+    pool[i].laz = pool[i].has_laz ? composition(f, pool[i].laz) : f;
+    pool[i].has_laz = true;
+    if (avl_segtree_internal::failed(pool[i].val)) {
+      // まとめて適用できなかった。子へ配ってから作り直す
+      push(i);
+      update(i);
+    }
   }
 
   // 部分木ぜんぶを反転させる
@@ -256,6 +280,8 @@ struct avl_segtree {
     n.rnk = std::max(rnk_(n.lft), rnk_(n.rht)) + 1;
     n.val = op(agg_(n.lft), agg_(n.rht));
     avl_segtree_internal::set_sz(n.val, n.sz);
+    // 節点に持つ値は必ず fail を下ろしておく。op が入力を使い回しても残らない
+    avl_segtree_internal::set_fail(n.val, false);
     return i;
   }
 
