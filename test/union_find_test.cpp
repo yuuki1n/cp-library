@@ -22,6 +22,13 @@ void report(const string& name) {
   ng = 0;
 }
 
+// ACL 流の型引数に渡す自由関数
+long long op_max(long long a, long long b) { return a > b ? a : b; }
+long long e_min() { return LLONG_MIN / 4; }
+int op_xor(int a, int b) { return a ^ b; }
+int e_zero() { return 0; }
+int inv_id(int a) { return a; }
+
 // 素朴な参照実装
 struct Naive {
   vector<int> p;
@@ -63,8 +70,7 @@ int main() {
       vector<long long> a(n);
       for (auto& x : a) x = (long long)(rng() % 1000) - 500;
       monoid_union_find<long long> sum(a);
-      auto mxop = [](long long x, long long y) { return max(x, y); };
-      monoid_union_find<long long, decltype(mxop)> mx(a, mxop);
+      monoid_union_find<long long, op_max, e_min> mx(a);
       Naive nv(n);
       for (int q = 0; q < 60; q++) {
         int u = (int)(rng() % n), v = (int)(rng() % n);
@@ -72,7 +78,7 @@ int main() {
         check(r == mx.merge(u, v), "2 つの monoid_union_find の merge が一致");
         check(r == nv.unite(u, v), "merge の戻り値");
         int x = (int)(rng() % n);
-        long long s = 0, m = LLONG_MIN;
+        long long s = 0, m = e_min();
         for (int i : nv.group(x)) {
           s += a[i];
           m = max(m, a[i]);
@@ -81,7 +87,7 @@ int main() {
         check(mx.prod(x) == m, "prod（最大値）");
       }
       // apply: 成分ごとの辺の本数を数え、総和が辺の本数と一致するか
-      monoid_union_find<long long> cnt(n, 0);
+      monoid_union_find<long long> cnt(n);
       long long add = 0;
       for (int q = 0; q < 40; q++) {
         int u = (int)(rng() % n), v = (int)(rng() % n);
@@ -175,7 +181,7 @@ int main() {
       vector<pair<int, int>> es;
       for (int q = 0; q < 12; q++)
         es.push_back({(int)(rng() % n), (int)(rng() % n)});
-      relational_union_find<int, bit_xor<int>, identity> uf(n);
+      relational_union_find<int, op_xor, e_zero, inv_id> uf(n);
       bool ok = true;
       for (auto [u, v] : es)
         if (!uf.merge(u, v, 1)) {
@@ -297,9 +303,9 @@ int main() {
       check(uf.prod(0) == 3, "merge 後の prod");
       uf.clear(vector<long long>{10, 20, 30, 40});
       check(!uf.same(0, 1) && uf.prod(0) == 10, "monoid_union_find::clear(v)");
-      uf.clear(4, 7);
-      check(uf.prod(3) == 7 && uf.groups().size() == 4,
-            "monoid_union_find::clear(n, e)");
+      uf.clear();
+      check(uf.prod(3) == 0 && uf.groups().size() == 4,
+            "monoid_union_find::clear()");
     }
     // dynamic_union_find: clear で頂点ごと消える
     {
@@ -322,7 +328,7 @@ int main() {
       check(a.groups().empty() && b.group_count() == 0 &&
                 c.group_count() == 0 && d.vertex_count() == 0,
             "デフォルトコンストラクタ");
-      a = monoid_union_find<long long>(3, 1);
+      a = monoid_union_find<long long>(vector<long long>(3, 1));
       check(a.prod(0) == 1, "代入で入れ直せる");
     }
     report("clear / ガード");
@@ -334,7 +340,7 @@ int main() {
       int n = 1 + (int)(rng() % 12);
       Naive nv(n);
       union_find gd(n);
-      monoid_union_find<long long> md(n, 1);
+      monoid_union_find<long long> md(vector<long long>(n, 1));
       relational_union_find<> rd(n);
       rollback_union_find rb(n);
       dynamic_union_find<long long> dd;
@@ -509,7 +515,7 @@ int main() {
       for (int i = 0; i < Q; i++) uf.merge(a[i], b[i]);
     });
     bench("速度 monoid_union_find merge x4e5", [&] {
-      monoid_union_find<long long> uf(N, 1);
+      monoid_union_find<long long> uf(vector<long long>(N, 1));
       for (int i = 0; i < Q; i++) uf.merge(a[i], b[i]);
     });
     bench("速度 rollback_union_find merge x4e5", [&] {

@@ -1,17 +1,22 @@
 #include <algorithm>
 #include <cassert>
-#include <functional>
 #include <numeric>
 #include <utility>
 #include <vector>
 
+namespace relational_union_find_internal {
+template <class F> F add(F a, F b) { return a + b; }
+template <class F> F zero() { return F(); }
+template <class F> F neg(F a) { return -a; }
+}  // namespace relational_union_find_internal
+
 /*
- * relational_union_find<F, Op, Inv> : 重み付き（ポテンシャル付き）
+ * relational_union_find<F, op, e, inv> : 重み付き（ポテンシャル付き）
  * Union-Find。ならし O(a(n))
  *
  *   「v の値 - u の値 は f」という制約を入れ、矛盾を検出しつつ差を答える。
  *
- *   relational_union_find(n, e, op, inv)
+ *   relational_union_find(n)
  *   merge(u, v, f)      diff(u, v) == f を入れる。矛盾したら false
  *   consistent(u, v, f) 入れずに矛盾しないかだけ調べる
  *   diff(u, v)          v の値 - u の値。same(u, v) が前提
@@ -20,7 +25,7 @@
  *   leader / same / size / group_count / clear
  *
  *   F は群であること（op は結合、inv は逆元、e は単位元）。既定は
- *   long long / 足し算 / 符号反転 なので、ふつうの差の制約なら
+ *   long long / 足し算 / 0 / 符号反転 なので、ふつうの差の制約なら
  *   relational_union_find<> uf(N); でよい。
  *
  * 使用例:
@@ -33,7 +38,10 @@
  *   if (uf.same(0, 1)) print(uf.diff(0, 1));
  *
  *   // 二部グラフ判定。xor は自分自身が逆元なので inv は恒等
- *   relational_union_find<int, bit_xor<int>, identity> uf(N);
+ *   int op_xor(int a, int b) { return a ^ b; }
+ *   int e_zero() { return 0; }
+ *   int inv_id(int a) { return a; }
+ *   relational_union_find<int, op_xor, e_zero, inv_id> uf(N);
  *
  * verify:
  *   (未 verify)
@@ -41,30 +49,28 @@
  *         https://judge.yosupo.jp/problem/unionfind_with_potential_non_commutative_group
  *         後者は非可換な群での検証。今のテストは可換な演算しか使っていない
  */
-template <class F = long long, class Op = std::plus<F>,
-          class Inv = std::negate<F>>
+template <class F = long long,
+          F (*op)(F, F) = relational_union_find_internal::add<F>,
+          F (*e)() = relational_union_find_internal::zero<F>,
+          F (*inv)(F) = relational_union_find_internal::neg<F>>
 struct relational_union_find {
  private:
   std::vector<int> dat;  // 負なら -(成分の大きさ)、非負なら親
-  std::vector<F> rel;    // 根から自分への関係。根は必ず e
+  std::vector<F> rel;    // 根から自分への関係。根は必ず e()
   std::vector<int> nxt;  // 成分ごとの巡回リスト
   int num;
-  F e;  // 単位元。clear で rel を戻すために持っておく
-  Op op;
-  Inv inv;
 
  public:
   relational_union_find() : relational_union_find(0) {}
-  explicit relational_union_find(int n, F e_ = F(), Op op_ = Op(),
-                                 Inv inv_ = Inv())
-      : dat(n, -1), rel(n, e_), nxt(n), num(n), e(e_), op(op_), inv(inv_) {
+  explicit relational_union_find(int n)
+      : dat(n, -1), rel(n, e()), nxt(n), num(n) {
     std::iota(nxt.begin(), nxt.end(), 0);
   }
 
   // 構築直後の状態に戻す（大きさはそのまま）
   void clear() {
     std::fill(dat.begin(), dat.end(), -1);
-    std::fill(rel.begin(), rel.end(), e);
+    std::fill(rel.begin(), rel.end(), e());
     std::iota(nxt.begin(), nxt.end(), 0);
     num = (int)dat.size();
   }
@@ -99,6 +105,15 @@ struct relational_union_find {
     return true;
   }
 
+  // 制約を入れずに、矛盾しないかだけ調べる
+  bool consistent(int u, int v, F f) { return !same(u, v) || diff(u, v) == f; }
+
+  // v の値 - u の値。同じ成分にいることが前提
+  F diff(int u, int v) {
+    assert(same(u, v));
+    return op(inv(rel[u]), rel[v]);
+  }
+
   // x と同じ成分の頂点を返す（x 自身も含む）
   std::vector<int> group(int x) {
     int r = leader(x), n = -dat[r], c = r;
@@ -116,14 +131,5 @@ struct relational_union_find {
     for (auto& g : buf)
       if (!g.empty()) ret.push_back(std::move(g));
     return ret;
-  }
-
-  // 制約を入れずに、矛盾しないかだけ調べる
-  bool consistent(int u, int v, F f) { return !same(u, v) || diff(u, v) == f; }
-
-  // v の値 - u の値。同じ成分にいることが前提
-  F diff(int u, int v) {
-    assert(same(u, v));
-    return op(inv(rel[u]), rel[v]);
   }
 };

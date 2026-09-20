@@ -80,7 +80,7 @@ struct union_find {
     return ret;
   }
 
-  // 連結成分ごとの頂点。各成分の中は昇順
+  // 連結成分ごとの頂点。各成分の中は昇順。成分そのものの並び順は決めていない
   std::vector<std::vector<int>> groups() {
     int n = (int)dat.size();
     std::vector<std::vector<int>> buf(n), ret;
