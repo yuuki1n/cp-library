@@ -95,9 +95,7 @@ int main() {
     for (int i = 0; i < n; i++) a[i] = n - i;
     auto t0 = chrono::steady_clock::now();
     ll r = inversion_count(a);
-    auto ms = chrono::duration_cast<chrono::milliseconds>(
-                  chrono::steady_clock::now() - t0)
-                  .count();
+    auto ms = chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - t0).count();
     check(r == ll(n) * (n - 1) / 2, "N=2e5 降順の値");
     printf("N=2e5 降順               : OK (%lld, %lld ms)\n", r, (ll)ms);
   }

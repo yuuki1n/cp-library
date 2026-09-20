@@ -140,9 +140,7 @@ int main() {
     check(s.insert(0, 2) == 2, "insert(0,2) の戻り値");
     check(s.insert(2, 5) == 3, "insert(2,5) の戻り値");
     check(s.intervals().size() == 1, "隣接区間が 1 本に併合されない");
-    check(
-        s.intervals().begin()->first == 0 && s.intervals().begin()->second == 5,
-        "[0,5) になる");
+    check(s.intervals().begin()->first == 0 && s.intervals().begin()->second == 5, "[0,5) になる");
     check(s.size() == 5, "size");
     check(s.insert(1, 3) == 0, "既に覆われた範囲の insert は 0");
     printf("隣接区間の併合             : OK\n");
@@ -154,12 +152,8 @@ int main() {
     s.insert(0, 10);
     check(s.erase(3, 5) == 2, "erase(3,5) の戻り値");
     check(s.intervals().size() == 2, "2 本に分かれない");
-    check(
-        s.intervals().begin()->first == 0 && s.intervals().begin()->second == 3,
-        "左が [0,3)");
-    check(s.intervals().rbegin()->first == 5 &&
-              s.intervals().rbegin()->second == 10,
-          "右が [5,10)");
+    check(s.intervals().begin()->first == 0 && s.intervals().begin()->second == 3, "左が [0,3)");
+    check(s.intervals().rbegin()->first == 5 && s.intervals().rbegin()->second == 10, "右が [5,10)");
     check(s.size() == 8, "size");
     check(s.erase(3, 5) == 0, "覆われていない範囲の erase は 0");
     printf("内側 erase による分割      : OK\n");
@@ -192,8 +186,7 @@ int main() {
     check(s.erase(5, 5) == 0, "l == r の erase");
     check(s.erase(0, 100) == 0, "空からの erase");
     s.insert(3);
-    check(s.size() == 1 && s.contains(3) && !s.contains(2) && !s.contains(4),
-          "単点 insert");
+    check(s.size() == 1 && s.contains(3) && !s.contains(2) && !s.contains(4), "単点 insert");
     check(s.mex() == 0 && s.mex(3) == 4, "単点の mex");
     s.clear();
     check(s.empty() && s.intervals().empty(), "clear");
@@ -231,11 +224,9 @@ int main() {
     auto t1 = chrono::steady_clock::now();
     for (auto [l, r] : qs) s.erase(l, r);
     auto t2 = chrono::steady_clock::now();
-    printf("速度 insert x2e5           : %lld ms\n",
-           (ll)chrono::duration_cast<chrono::milliseconds>(t1 - t0).count());
+    printf("速度 insert x2e5           : %lld ms\n", (ll)chrono::duration_cast<chrono::milliseconds>(t1 - t0).count());
     printf("速度 erase  x2e5           : %lld ms  (残り %lld / 区間 %zu)\n",
-           (ll)chrono::duration_cast<chrono::milliseconds>(t2 - t1).count(),
-           s.size(), s.intervals().size());
+           (ll)chrono::duration_cast<chrono::milliseconds>(t2 - t1).count(), s.size(), s.intervals().size());
     check(canonical(s), "速度テスト後も正規形");
   }
 

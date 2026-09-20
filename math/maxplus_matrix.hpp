@@ -36,8 +36,7 @@
  *   (未 verify)
  */
 template <class T = long long> struct maxplus_matrix {
-  static_assert(std::is_signed_v<T>,
-                "T は符号付きであること（NEG に使うため）");
+  static_assert(std::is_signed_v<T>, "T は符号付きであること（NEG に使うため）");
   static constexpr T NEG = std::numeric_limits<T>::lowest() / 4;
 
   int n;
@@ -82,8 +81,7 @@ template <class T = long long> struct maxplus_matrix {
 };
 
 // 行ベクトル x 行列
-template <class T>
-std::vector<T> operator*(const std::vector<T>& v, const maxplus_matrix<T>& A) {
+template <class T> std::vector<T> operator*(const std::vector<T>& v, const maxplus_matrix<T>& A) {
   assert((int)v.size() == A.n);
   std::vector<T> r(A.n, maxplus_matrix<T>::NEG);
   for (int i = 0; i < A.n; i++) {

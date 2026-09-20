@@ -30,8 +30,7 @@ template <class W = long long> struct graph {
     W w;
   };
 
-  explicit graph(int n_ = 0, bool directed_ = false)
-      : n(n_), directed(directed_), adj(n_) {}
+  explicit graph(int n_ = 0, bool directed_ = false) : n(n_), directed(directed_), adj(n_) {}
 
   int size() const { return n; }
   int edge_count() const { return m; }

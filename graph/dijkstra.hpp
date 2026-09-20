@@ -60,15 +60,10 @@ template <class G> struct dijkstra {
   std::vector<int> par_edge;  // そこへ来るのに使った辺番号
   W inf;
 
-  dijkstra(const G& g, int s, W inf_ = dijkstra_internal::default_inf<W>())
-      : dijkstra(g, std::vector<int>{s}, inf_) {}
+  dijkstra(const G& g, int s, W inf_ = dijkstra_internal::default_inf<W>()) : dijkstra(g, std::vector<int>{s}, inf_) {}
 
-  dijkstra(const G& g, const std::vector<int>& src,
-           W inf_ = dijkstra_internal::default_inf<W>())
-      : dist(g.size(), inf_),
-        par(g.size(), -1),
-        par_edge(g.size(), -1),
-        inf(inf_) {
+  dijkstra(const G& g, const std::vector<int>& src, W inf_ = dijkstra_internal::default_inf<W>())
+      : dist(g.size(), inf_), par(g.size(), -1), par_edge(g.size(), -1), inf(inf_) {
     using P = std::pair<W, int>;
     std::priority_queue<P, std::vector<P>, std::greater<P>> pq;
     for (int s : src) {

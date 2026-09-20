@@ -115,9 +115,7 @@ template <int SIGMA = 26, char OFFSET = 'a'> struct trie {
     }
     return q;
   }
-  std::vector<int> path(const std::string& s) const {
-    return path(to_index(s));
-  }
+  std::vector<int> path(const std::string& s) const { return path(to_index(s)); }
 
   int count(const std::vector<int>& s) const { return ends(find(s)); }
   int count(const std::string& s) const { return ends(find(s)); }

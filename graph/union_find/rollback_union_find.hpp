@@ -43,9 +43,7 @@ struct rollback_union_find {
 
  public:
   rollback_union_find() : rollback_union_find(0) {}
-  explicit rollback_union_find(int n) : dat(n, -1), nxt(n), num(n) {
-    std::iota(nxt.begin(), nxt.end(), 0);
-  }
+  explicit rollback_union_find(int n) : dat(n, -1), nxt(n), num(n) { std::iota(nxt.begin(), nxt.end(), 0); }
 
   // 経路圧縮はしない。高さは O(log n)
   int leader(int x) const {

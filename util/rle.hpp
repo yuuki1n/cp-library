@@ -34,8 +34,7 @@ template <class C> auto rle(const C& v) {
   return r;
 }
 
-template <class T>
-std::vector<T> rle_decode(const std::vector<std::pair<T, long long>>& r) {
+template <class T> std::vector<T> rle_decode(const std::vector<std::pair<T, long long>>& r) {
   std::vector<T> v;
   for (const auto& [x, c] : r)
     for (long long i = 0; i < c; i++) v.push_back(x);

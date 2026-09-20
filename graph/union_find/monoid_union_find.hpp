@@ -41,8 +41,7 @@ template <class S> S zero() { return S(); }
  *   (未 verify)
  *   予定: https://judge.yosupo.jp/problem/dynamic_graph_vertex_add_component_sum
  */
-template <class S, S (*op)(S, S) = monoid_union_find_internal::add<S>,
-          S (*e)() = monoid_union_find_internal::zero<S>>
+template <class S, S (*op)(S, S) = monoid_union_find_internal::add<S>, S (*e)() = monoid_union_find_internal::zero<S>>
 struct monoid_union_find {
  private:
   std::vector<int> dat;  // 負なら -(成分の大きさ)、非負なら親
@@ -52,10 +51,8 @@ struct monoid_union_find {
 
  public:
   monoid_union_find() : monoid_union_find(0) {}
-  explicit monoid_union_find(int n)
-      : monoid_union_find(std::vector<S>(n, e())) {}
-  explicit monoid_union_find(const std::vector<S>& v)
-      : dat(v.size(), -1), nxt(v.size()), val(v), num((int)v.size()) {
+  explicit monoid_union_find(int n) : monoid_union_find(std::vector<S>(n, e())) {}
+  explicit monoid_union_find(const std::vector<S>& v) : dat(v.size(), -1), nxt(v.size()), val(v), num((int)v.size()) {
     std::iota(nxt.begin(), nxt.end(), 0);
   }
 
@@ -84,7 +81,7 @@ struct monoid_union_find {
     if (x == y) return false;
     S m = op(val[x], val[y]);
     if (-dat[x] < -dat[y]) std::swap(x, y);  // x を大きい方に
-    std::swap(nxt[x], nxt[y]);  // 2 つの環の next を交換すると 1 つの環になる
+    std::swap(nxt[x], nxt[y]);               // 2 つの環の next を交換すると 1 つの環になる
     dat[x] += dat[y];
     dat[y] = x;
     val[x] = std::move(m);

@@ -29,8 +29,7 @@ void report(const string& name) {
 constexpr ll INF = 2002003004005006007LL;  // dijkstra の既定 inf と同じ値
 
 // 参照実装: Bellman-Ford（多始点対応）
-vector<ll> bellman(int n, const vector<array<int, 3>>& es,
-                   const vector<int>& src) {
+vector<ll> bellman(int n, const vector<array<int, 3>>& es, const vector<int>& src) {
   vector<ll> d(n, INF);
   for (int s : src) d[s] = 0;
   for (int it = 0; it < n; it++)
@@ -110,8 +109,7 @@ int main() {
       int s = (int)(rng() % n);
       dijkstra d(g, s);
       auto want = bellman(n, es, {s});
-      for (int v = 0; v < n; v++)
-        check(d.dist[v] == want[v], "有向グラフの dist");
+      for (int v = 0; v < n; v++) check(d.dist[v] == want[v], "有向グラフの dist");
     }
     report("有向グラフ");
   }
@@ -156,8 +154,7 @@ int main() {
     z.add_edge(1, 2, 10);
     z.add_edge(1, 2, 3);  // 多重辺（短いほう）
     dijkstra dz(z, 0);
-    check(dz.dist[0] == 0 && dz.dist[1] == 0 && dz.dist[2] == 3,
-          "自己ループ / 重み 0 / 多重辺");
+    check(dz.dist[0] == 0 && dz.dist[1] == 0 && dz.dist[2] == 3, "自己ループ / 重み 0 / 多重辺");
     check(dz.par_edge[2] == 4, "短いほうの多重辺を選ぶ");
 
     graph<ll> iso(3, true);
@@ -175,8 +172,7 @@ int main() {
     check(di.dist[1] == 2002003004005006007LL, "未到達は LINF");
     graph<int> gi(2, true);
     dijkstra dii(gi, 0);
-    check(dii.inf == numeric_limits<int>::max() / 2,
-          "int では max() / 2 に落ちる");
+    check(dii.inf == numeric_limits<int>::max() / 2, "int では max() / 2 に落ちる");
     check(!dii.reachable(1), "int でも未到達を判定できる");
 
     // inf を明示的に渡す
@@ -195,8 +191,7 @@ int main() {
     check(g.edge_count() == 0 && g.size() == 3, "clear 後の状態");
     check(g[0].empty() && !dijkstra(g, 0).reachable(2), "clear で辺が消える");
     g.add_edge(0, 2, 1);
-    check(g.edge_count() == 1 && dijkstra(g, 0).dist[2] == 1,
-          "clear 後に足し直せる");
+    check(g.edge_count() == 1 && dijkstra(g, 0).dist[2] == 1, "clear 後に足し直せる");
     report("graph::clear");
   }
 
@@ -206,17 +201,13 @@ int main() {
   {  // ---- 速度 ----
     const int N = 200000, M = 400000;
     graph<ll> g(N, true);
-    for (int i = 0; i < M; i++)
-      g.add_edge((int)(rng() % N), (int)(rng() % N), (ll)(rng() % 1000000000));
+    for (int i = 0; i < M; i++) g.add_edge((int)(rng() % N), (int)(rng() % N), (ll)(rng() % 1000000000));
     auto st = chrono::steady_clock::now();
     dijkstra d(g, 0);
     ll cnt = 0;
     for (int v = 0; v < N; v++) cnt += d.reachable(v);
     printf("%-30s : %lld ms  (到達 %lld / %d)\n", "速度 N=2e5 M=4e5",
-           (long long)chrono::duration_cast<chrono::milliseconds>(
-               chrono::steady_clock::now() - st)
-               .count(),
-           cnt, N);
+           (long long)chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - st).count(), cnt, N);
   }
 #endif
 

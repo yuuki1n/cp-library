@@ -37,8 +37,7 @@ int main() {
 
       auto r = rle(v);
       // 連続が正しくまとまっているか
-      for (size_t i = 0; i + 1 < r.size(); i++)
-        check(r[i].first != r[i + 1].first, "隣り合う値は異なる");
+      for (size_t i = 0; i + 1 < r.size(); i++) check(r[i].first != r[i + 1].first, "隣り合う値は異なる");
       ll tot = 0;
       for (auto& [x, c] : r) {
         check(c >= 1, "個数は 1 以上");
@@ -127,10 +126,7 @@ int main() {
     auto st = chrono::steady_clock::now();
     auto r = rle(s);
     printf("%-30s : %lld ms  (%zu 区間)\n", "速度 長さ 2e6",
-           (ll)chrono::duration_cast<chrono::milliseconds>(
-               chrono::steady_clock::now() - st)
-               .count(),
-           r.size());
+           (ll)chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - st).count(), r.size());
   }
 #endif
 

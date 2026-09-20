@@ -57,8 +57,7 @@ int main() {
   {  // ---- 積 / 和 / スカラー倍 ----
     ng = 0;
     for (int it = 0; it < 300; it++) {
-      int h = 1 + (int)(rng() % 5), k = 1 + (int)(rng() % 5),
-          w = 1 + (int)(rng() % 5);
+      int h = 1 + (int)(rng() % 5), k = 1 + (int)(rng() % 5), w = 1 + (int)(rng() % 5);
       auto A = rnd(rng, h, k), B = rnd(rng, k, w);
       auto C = A * B;
       check(C.h == h && C.w == w, "積の形");
@@ -130,8 +129,7 @@ int main() {
         for (int j = 0; j < n; j++) check(P[i][j] == Q[i][j], "pow");
       auto P0 = A.pow(0);
       for (int i = 0; i < n; i++)
-        for (int j = 0; j < n; j++)
-          check(P0[i][j] == (i == j ? mint(1) : mint(0)), "pow(0) は単位行列");
+        for (int j = 0; j < n; j++) check(P0[i][j] == (i == j ? mint(1) : mint(0)), "pow(0) は単位行列");
     }
     // フィボナッチ
     {
@@ -201,12 +199,10 @@ int main() {
         check(B.h == n && B.w == n, "逆行列の形");
         auto C = A * B;
         for (int i = 0; i < n; i++)
-          for (int j = 0; j < n; j++)
-            check(C[i][j] == (i == j ? mint(1) : mint(0)), "A * inv(A) = I");
+          for (int j = 0; j < n; j++) check(C[i][j] == (i == j ? mint(1) : mint(0)), "A * inv(A) = I");
         auto D = B * A;
         for (int i = 0; i < n; i++)
-          for (int j = 0; j < n; j++)
-            check(D[i][j] == (i == j ? mint(1) : mint(0)), "inv(A) * A = I");
+          for (int j = 0; j < n; j++) check(D[i][j] == (i == j ? mint(1) : mint(0)), "inv(A) * A = I");
       }
     }
     report("逆行列");
@@ -304,8 +300,7 @@ int main() {
       int s0 = (int)(rng() % n);
       v[s0] = 0;
       auto vP = v * P;
-      for (int j = 0; j < n; j++)
-        check(vP[j] == P[s0][j], "v * P は行の取り出し");
+      for (int j = 0; j < n; j++) check(vP[j] == P[s0][j], "v * P は行の取り出し");
       auto l2 = (v * P) * M, r2 = v * (P * M);
       for (int j = 0; j < n; j++) check(l2[j] == r2[j], "結合則");
     }
@@ -338,16 +333,13 @@ int main() {
   puts("速度計測                       : _GLIBCXX_DEBUG のため省略");
 #else
   {  // ---- 速度 ----
-    auto ms = [](auto s, auto e) {
-      return (ll)chrono::duration_cast<chrono::milliseconds>(e - s).count();
-    };
+    auto ms = [](auto s, auto e) { return (ll)chrono::duration_cast<chrono::milliseconds>(e - s).count(); };
     {
       int n = 200;
       auto A = rnd(rng, n, n, 998244353);
       auto st = chrono::steady_clock::now();
       auto B = A * A;
-      printf("%-30s : %lld ms\n", "速度 200x200 の積",
-             ms(st, chrono::steady_clock::now()));
+      printf("%-30s : %lld ms\n", "速度 200x200 の積", ms(st, chrono::steady_clock::now()));
       (void)B;
     }
     {
@@ -356,8 +348,7 @@ int main() {
       auto st = chrono::steady_clock::now();
       auto d = A.det();
       auto r = A.rank();
-      printf("%-30s : %lld ms  (rank %d)\n", "速度 200x200 の det + rank",
-             ms(st, chrono::steady_clock::now()), r);
+      printf("%-30s : %lld ms  (rank %d)\n", "速度 200x200 の det + rank", ms(st, chrono::steady_clock::now()), r);
       (void)d;
     }
     {
@@ -365,8 +356,7 @@ int main() {
       auto A = rnd(rng, n, n, 998244353);
       auto st = chrono::steady_clock::now();
       auto P = A.pow(1000000000000LL);
-      printf("%-30s : %lld ms\n", "速度 60x60 の 10^12 乗",
-             ms(st, chrono::steady_clock::now()));
+      printf("%-30s : %lld ms\n", "速度 60x60 の 10^12 乗", ms(st, chrono::steady_clock::now()));
       (void)P;
     }
   }

@@ -37,9 +37,7 @@ struct union_find {
 
  public:
   union_find() : union_find(0) {}
-  explicit union_find(int n) : dat(n, -1), nxt(n), num(n) {
-    std::iota(nxt.begin(), nxt.end(), 0);
-  }
+  explicit union_find(int n) : dat(n, -1), nxt(n), num(n) { std::iota(nxt.begin(), nxt.end(), 0); }
 
   // 構築直後の状態に戻す（大きさはそのまま）
   void clear() {
@@ -64,7 +62,7 @@ struct union_find {
     int x = leader(a), y = leader(b);
     if (x == y) return false;
     if (-dat[x] < -dat[y]) std::swap(x, y);  // x を大きい方に
-    std::swap(nxt[x], nxt[y]);  // 2 つの環の next を交換すると 1 つの環になる
+    std::swap(nxt[x], nxt[y]);               // 2 つの環の next を交換すると 1 つの環になる
     dat[x] += dat[y];
     dat[y] = x;
     num--;

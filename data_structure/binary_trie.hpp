@@ -67,8 +67,7 @@ template <int BITS = 30, class T = long long> struct binary_trie {
   // x を d 個追加する（d = -1 で 1 個削除）
   void insert(T x, int d = 1) {
     assert(0 <= x && (BITS >= (int)sizeof(T) * 8 || x < (T(1) << BITS)));
-    T y =
-        x ^ lz;  // 見え方が x になるように、掛かっている xor を打ち消して入れる
+    T y = x ^ lz;  // 見え方が x になるように、掛かっている xor を打ち消して入れる
     int v = 0;
     sz[0] += d;
     for (int b = BITS - 1; b >= 0; b--) {

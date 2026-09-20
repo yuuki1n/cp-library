@@ -27,8 +27,7 @@ template <class T = long long> struct cumsum2d {
     std::size_t h = a.size(), w = h == 0 ? 0 : a[0].size();
     s.assign(h + 1, std::vector<T>(w + 1, T()));
     for (std::size_t i = 0; i < h; i++)
-      for (std::size_t j = 0; j < w; j++)
-        s[i + 1][j + 1] = s[i][j + 1] + s[i + 1][j] - s[i][j] + T(a[i][j]);
+      for (std::size_t j = 0; j < w; j++) s[i + 1][j + 1] = s[i][j + 1] + s[i + 1][j] - s[i][j] + T(a[i][j]);
   }
 
   void clear() { s.assign(1, std::vector<T>(1, T())); }
@@ -37,9 +36,7 @@ template <class T = long long> struct cumsum2d {
   std::size_t w() const { return s[0].size() - 1; }
 
   // [i1, i2) x [j1, j2)
-  T operator()(long long i1, long long j1, long long i2, long long j2) const {
-    return s[i2][j2] - s[i1][j2] - s[i2][j1] + s[i1][j1];
-  }
+  T operator()(long long i1, long long j1, long long i2, long long j2) const { return s[i2][j2] - s[i1][j2] - s[i2][j1] + s[i1][j1]; }
   // [0, i2) x [0, j2)
   T operator()(long long i2, long long j2) const { return s[i2][j2]; }
   T all_sum() const { return s.back().back(); }

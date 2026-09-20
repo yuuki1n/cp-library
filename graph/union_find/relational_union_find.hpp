@@ -49,9 +49,7 @@ template <class F> F neg(F a) { return -a; }
  *         https://judge.yosupo.jp/problem/unionfind_with_potential_non_commutative_group
  *         後者は非可換な群での検証。今のテストは可換な演算しか使っていない
  */
-template <class F = long long,
-          F (*op)(F, F) = relational_union_find_internal::add<F>,
-          F (*e)() = relational_union_find_internal::zero<F>,
+template <class F = long long, F (*op)(F, F) = relational_union_find_internal::add<F>, F (*e)() = relational_union_find_internal::zero<F>,
           F (*inv)(F) = relational_union_find_internal::neg<F>>
 struct relational_union_find {
  private:
@@ -62,10 +60,7 @@ struct relational_union_find {
 
  public:
   relational_union_find() : relational_union_find(0) {}
-  explicit relational_union_find(int n)
-      : dat(n, -1), rel(n, e()), nxt(n), num(n) {
-    std::iota(nxt.begin(), nxt.end(), 0);
-  }
+  explicit relational_union_find(int n) : dat(n, -1), rel(n, e()), nxt(n), num(n) { std::iota(nxt.begin(), nxt.end(), 0); }
 
   // 構築直後の状態に戻す（大きさはそのまま）
   void clear() {

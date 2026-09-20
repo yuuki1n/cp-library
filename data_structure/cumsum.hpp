@@ -51,10 +51,8 @@ template <class T = long long> struct cumsum {
   void clear() { s.assign(1, T()); }
   void reserve(std::size_t n) { s.reserve(n + 1); }
 
-  T operator()(long long l, long long r) const {
-    return s[r] - s[l];
-  }  // [l, r)
-  T operator()(long long r) const { return s[r]; }  // [0, r)
+  T operator()(long long l, long long r) const { return s[r] - s[l]; }  // [l, r)
+  T operator()(long long r) const { return s[r]; }                      // [0, r)
   T all_sum() const { return s.back(); }
   T at(long long i) const { return s[i + 1] - s[i]; }  // 元の a[i]
 };

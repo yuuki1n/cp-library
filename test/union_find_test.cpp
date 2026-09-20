@@ -134,8 +134,7 @@ int main() {
       Naive& nv = hist[t];
       check(uf.group_count() == nv.count(), "rollback 後の count");
       for (int x = 0; x < n; x++)
-        for (int y = 0; y < n; y++)
-          check(uf.same(x, y) == nv.same(x, y), "rollback 後の same");
+        for (int y = 0; y < n; y++) check(uf.same(x, y) == nv.same(x, y), "rollback 後の same");
     }
     report("rollback_union_find");
   }
@@ -179,8 +178,7 @@ int main() {
     for (int iter = 0; iter < 300; iter++) {
       int n = 2 + (int)(rng() % 10);
       vector<pair<int, int>> es;
-      for (int q = 0; q < 12; q++)
-        es.push_back({(int)(rng() % n), (int)(rng() % n)});
+      for (int q = 0; q < 12; q++) es.push_back({(int)(rng() % n), (int)(rng() % n)});
       relational_union_find<int, op_xor, e_zero, inv_id> uf(n);
       bool ok = true;
       for (auto [u, v] : es)
@@ -248,8 +246,7 @@ int main() {
         int y = (int)(rng() % n);
         if (added.count(y)) {
           check(uf.same(key[x], key[y]) == nv.same(x, y), "same");
-          check((uf.leader(key[x]) == uf.leader(key[y])) == nv.same(x, y),
-                "leader");
+          check((uf.leader(key[x]) == uf.leader(key[y])) == nv.same(x, y), "leader");
         }
       }
     }
@@ -258,8 +255,7 @@ int main() {
     check(p.add({0, 0}) == false, "add 2 回目");
     p.merge({0, 0}, {0, 1});
     p.merge({5, 5}, {0, 0});
-    check(p.vertex_count() == 3 && p.group_count() == 1 && p.size({0, 1}) == 3,
-          "pair キー");
+    check(p.vertex_count() == 3 && p.group_count() == 1 && p.size({0, 1}) == 3, "pair キー");
     check(p.group({5, 5}).size() == 3, "pair キーの group");
     report("dynamic_union_find");
   }
@@ -271,8 +267,7 @@ int main() {
       rollback_union_find uf(4);
       uf.undo();
       uf.rollback(-5);
-      check(uf.group_count() == 4 && uf.snapshot() == 0,
-            "空履歴の undo / rollback");
+      check(uf.group_count() == 4 && uf.snapshot() == 0, "空履歴の undo / rollback");
       uf.merge(0, 1);
       uf.merge(2, 3);
       uf.rollback(0);
@@ -281,8 +276,7 @@ int main() {
       uf.merge(0, 1);
       uf.merge(1, 2);
       uf.clear();
-      check(uf.group_count() == 4 && uf.snapshot() == 0 && !uf.same(0, 1) &&
-                uf.size(0) == 1 && uf.group(0).size() == 1,
+      check(uf.group_count() == 4 && uf.snapshot() == 0 && !uf.same(0, 1) && uf.size(0) == 1 && uf.group(0).size() == 1,
             "rollback_union_find::clear");
     }
     // relational_union_find: clear で制約が消える
@@ -291,8 +285,7 @@ int main() {
       check(uf.merge(0, 1, 5), "制約を入れる");
       check(!uf.merge(0, 1, 6), "矛盾を検出");
       uf.clear();
-      check(uf.group_count() == 4 && !uf.same(0, 1),
-            "relational_union_find::clear");
+      check(uf.group_count() == 4 && !uf.same(0, 1), "relational_union_find::clear");
       check(uf.merge(0, 1, 6), "clear 後は同じ制約が通る");
       check(uf.diff(0, 1) == 6, "clear 後の diff");
     }
@@ -304,8 +297,7 @@ int main() {
       uf.clear(vector<long long>{10, 20, 30, 40});
       check(!uf.same(0, 1) && uf.prod(0) == 10, "monoid_union_find::clear(v)");
       uf.clear();
-      check(uf.prod(3) == 0 && uf.groups().size() == 4,
-            "monoid_union_find::clear()");
+      check(uf.prod(3) == 0 && uf.groups().size() == 4, "monoid_union_find::clear()");
     }
     // dynamic_union_find: clear で頂点ごと消える
     {
@@ -313,11 +305,9 @@ int main() {
       uf.merge(100, 200);
       check(uf.vertex_count() == 2 && uf.group_count() == 1, "merge 後");
       uf.clear();
-      check(uf.vertex_count() == 0 && uf.group_count() == 0,
-            "dynamic_union_find::clear");
+      check(uf.vertex_count() == 0 && uf.group_count() == 0, "dynamic_union_find::clear");
       uf.add(100);
-      check(uf.vertex_count() == 1 && !uf.same(100, 200),
-            "clear 後に足し直せる");
+      check(uf.vertex_count() == 1 && !uf.same(100, 200), "clear 後に足し直せる");
     }
     // デフォルトコンストラクタ
     {
@@ -325,9 +315,7 @@ int main() {
       relational_union_find<> b;
       rollback_union_find c;
       dynamic_union_find<long long> d;
-      check(a.groups().empty() && b.group_count() == 0 &&
-                c.group_count() == 0 && d.vertex_count() == 0,
-            "デフォルトコンストラクタ");
+      check(a.groups().empty() && b.group_count() == 0 && c.group_count() == 0 && d.vertex_count() == 0, "デフォルトコンストラクタ");
       a = monoid_union_find<long long>(vector<long long>(3, 1));
       check(a.prod(0) == 1, "代入で入れ直せる");
     }
@@ -501,10 +489,7 @@ int main() {
     auto bench = [&](const char* name, auto f) {
       auto st = chrono::steady_clock::now();
       f();
-      printf("%-30s : %lld ms\n", name,
-             (long long)chrono::duration_cast<chrono::milliseconds>(
-                 chrono::steady_clock::now() - st)
-                 .count());
+      printf("%-30s : %lld ms\n", name, (long long)chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - st).count());
     };
     bench("速度 dsu merge x4e5", [&] {
       dsu uf(N);
@@ -533,8 +518,7 @@ int main() {
     {  // group() が成分の大きさぶんで済むか（全部つないでから 1 点ずつ引く）
       union_find uf(N);
       for (int i = 1; i < N; i++) uf.merge(i - 1, i);
-      bench("速度 union_find group x1（N=2e5）",
-            [&] { check((int)uf.group(0).size() == N, "全連結"); });
+      bench("速度 union_find group x1（N=2e5）", [&] { check((int)uf.group(0).size() == N, "全連結"); });
       union_find sm(N);  // 孤立点のまま 4e5 回取り出す
       bench("速度 union_find group x4e5（孤立点）", [&] {
         long long t = 0;

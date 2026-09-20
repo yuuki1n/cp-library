@@ -89,7 +89,7 @@ template <class K, class Map = std::map<K, int>> struct dynamic_union_find {
     int x = root(id(a)), y = root(id(b));
     if (x == y) return false;
     if (-dat[x] < -dat[y]) std::swap(x, y);  // x を大きい方に
-    std::swap(nxt[x], nxt[y]);  // 2 つの環の next を交換すると 1 つの環になる
+    std::swap(nxt[x], nxt[y]);               // 2 つの環の next を交換すると 1 つの環になる
     dat[x] += dat[y];
     dat[y] = x;
     num--;

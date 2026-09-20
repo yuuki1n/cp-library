@@ -106,8 +106,7 @@ int main() {
     b.add(vector<int>{0, 1, 1});
     b.add(vector<int>{0, 1});
     check(b.count(vector<int>{0, 1, 1}) == 1, "vector<int> 版 count");
-    check(b.count_prefix(vector<int>{0, 1}) == 2,
-          "vector<int> 版 count_prefix");
+    check(b.count_prefix(vector<int>{0, 1}) == 2, "vector<int> 版 count_prefix");
 
     // path
     {
@@ -119,8 +118,7 @@ int main() {
       check(p.find("apple") == pa.back(), "path の末尾は find と一致");
       // 各接頭辞の本数
       vector<int> want{4, 3, 3, 2, 2, 1};
-      for (size_t i = 0; i < pa.size(); i++)
-        check(p.cnt(pa[i]) == want[i], "path 上の cnt");
+      for (size_t i = 0; i < pa.size(); i++) check(p.cnt(pa[i]) == want[i], "path 上の cnt");
 
       check((int)p.path("axe").size() == 2, "途中で切れる");
       check((int)p.path("banjo").size() == 4, "ban まで一致");
@@ -255,8 +253,7 @@ int main() {
       binary_trie<8> c;
       for (ll x : {5LL, 9LL, 1LL}) c.insert(x);
       auto probe = [](const binary_trie<8>& r) {
-        return r.size() + (int)r.min_value() + (int)r.max_value(3) +
-               (int)r.kth(1, 2) + r.count_less(9) + r.count_less(9, 3) +
+        return r.size() + (int)r.min_value() + (int)r.max_value(3) + (int)r.kth(1, 2) + r.count_less(9) + r.count_less(9, 3) +
                (int)r.count(5);
       };
       check(probe(c) == 3 + 1 + 10 + 7 + 2 + 2 + 1, "const 参照から呼べる");
@@ -271,9 +268,7 @@ int main() {
   puts("速度計測                       : _GLIBCXX_DEBUG のため省略");
 #else
   {  // ---- 速度 ----
-    auto ms = [](auto a, auto b) {
-      return (ll)chrono::duration_cast<chrono::milliseconds>(b - a).count();
-    };
+    auto ms = [](auto a, auto b) { return (ll)chrono::duration_cast<chrono::milliseconds>(b - a).count(); };
     {
       const int N = 200000, L = 10;
       vector<string> ss(N);
@@ -286,8 +281,7 @@ int main() {
       for (auto& s : ss) t.add(s);
       ll acc = 0;
       for (auto& s : ss) acc += t.count_prefix(s);
-      printf("%-30s : %lld ms  (ノード %d)\n", "速度 trie 2e5 本 x 長さ 10",
-             ms(st, chrono::steady_clock::now()), t.node_count());
+      printf("%-30s : %lld ms  (ノード %d)\n", "速度 trie 2e5 本 x 長さ 10", ms(st, chrono::steady_clock::now()), t.node_count());
       (void)acc;
     }
     {
@@ -301,8 +295,7 @@ int main() {
         if (t.size()) acc ^= t.max_value(x);
         t.insert(x);
       }
-      printf("%-30s : %lld ms  (ノード %d)\n", "速度 binary_trie 2e5 個",
-             ms(st, chrono::steady_clock::now()), t.node_count());
+      printf("%-30s : %lld ms  (ノード %d)\n", "速度 binary_trie 2e5 個", ms(st, chrono::steady_clock::now()), t.node_count());
       (void)acc;
     }
   }

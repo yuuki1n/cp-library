@@ -33,13 +33,11 @@ namespace prime_internal {
 // これ以下は SPF テーブル、超えたら Pollard の ρ に切り替える
 constexpr long long SPF_MAX = 1000000;
 
-inline unsigned long long mul_mod(unsigned long long a, unsigned long long b,
-                                  unsigned long long m) {
+inline unsigned long long mul_mod(unsigned long long a, unsigned long long b, unsigned long long m) {
   return (unsigned long long)((__uint128_t)a * b % m);
 }
 
-inline unsigned long long pow_mod(unsigned long long a, unsigned long long e,
-                                  unsigned long long m) {
+inline unsigned long long pow_mod(unsigned long long a, unsigned long long e, unsigned long long m) {
   unsigned long long r = 1 % m;
   a %= m;
   while (e) {
@@ -79,19 +77,16 @@ inline const std::vector<int>& spf_table(long long n) {
 inline bool is_prime(long long n_) {
   if (n_ < 2) return false;
   if (!(n_ & 1)) return n_ == 2;
-  if (n_ <= prime_internal::SPF_MAX)
-    return prime_internal::spf_table(n_)[std::size_t(n_ >> 1)] == n_;
+  if (n_ <= prime_internal::SPF_MAX) return prime_internal::spf_table(n_)[std::size_t(n_ >> 1)] == n_;
 
   unsigned long long n = (unsigned long long)n_;
-  for (unsigned long long p : {3ULL, 5ULL, 7ULL, 11ULL, 13ULL, 17ULL, 19ULL,
-                               23ULL, 29ULL, 31ULL, 37ULL}) {
+  for (unsigned long long p : {3ULL, 5ULL, 7ULL, 11ULL, 13ULL, 17ULL, 19ULL, 23ULL, 29ULL, 31ULL, 37ULL}) {
     if (n % p == 0) return n == p;
   }
   unsigned long long d = n - 1;
   int s = 0;
   while (!(d & 1)) d >>= 1, s++;
-  for (unsigned long long a : {2ULL, 325ULL, 9375ULL, 28178ULL, 450775ULL,
-                               9780504ULL, 1795265022ULL}) {
+  for (unsigned long long a : {2ULL, 325ULL, 9375ULL, 28178ULL, 450775ULL, 9780504ULL, 1795265022ULL}) {
     if (a % n == 0) continue;
     unsigned long long x = prime_internal::pow_mod(a % n, d, n);
     if (x == 1 || x == n - 1) continue;

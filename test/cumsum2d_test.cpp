@@ -62,8 +62,7 @@ int main() {
     check(cs.h() == 0 && cs.w() == 0 && cs.all_sum() == 0, "デフォルト構築");
     vector<vector<int>> e;
     cumsum2d<ll> cs2(e);
-    check(cs2.h() == 0 && cs2.w() == 0 && cs2.all_sum() == 0,
-          "空 vector から構築");
+    check(cs2.h() == 0 && cs2.w() == 0 && cs2.all_sum() == 0, "空 vector から構築");
     printf("空 / デフォルト構築      : OK\n");
   }
 
@@ -71,8 +70,7 @@ int main() {
   {
     vector<vector<int>> big(400, vector<int>(400, 1000000000));
     cumsum2d<ll> cs(big);
-    check(cs.all_sum() == 400LL * 400LL * 1000000000LL,
-          "int の grid で溢れない");
+    check(cs.all_sum() == 400LL * 400LL * 1000000000LL, "int の grid で溢れない");
     printf("int の grid -> ll 累積   : OK (%lld)\n", cs.all_sum());
   }
 

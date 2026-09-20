@@ -40,11 +40,9 @@ int main() {
 
   // ---- 既知の大きい素数 / 合成数 ----
   {
-    for (ll p : {1000000007LL, 998244353LL, 1000000009LL, 2147483647LL,
-                 999999999989LL, 1000000000000000003LL, 9223372036854775783LL})
+    for (ll p : {1000000007LL, 998244353LL, 1000000009LL, 2147483647LL, 999999999989LL, 1000000000000000003LL, 9223372036854775783LL})
       check(is_prime(p), "既知の素数を素数と判定できない");
-    for (ll c : {1000000007LL * 2, 999999999989LL * 3, 4LL, 561LL, 1105LL,
-                 1729LL, 2465LL, 3215031751LL})
+    for (ll c : {1000000007LL * 2, 999999999989LL * 3, 4LL, 561LL, 1105LL, 1729LL, 2465LL, 3215031751LL})
       check(!is_prime(c), "合成数を素数と判定した");
     check(!is_prime(0) && !is_prime(1) && !is_prime(-7), "0/1/負数");
     printf("is_prime  既知の値 / 境界     : OK\n");
@@ -75,9 +73,7 @@ int main() {
   // ---- factorize の既知の値 ----
   {
     auto f = factorize(360);  // 2^3 * 3^2 * 5
-    check(f.size() == 3 && f[0] == make_pair(2LL, 3) &&
-              f[1] == make_pair(3LL, 2) && f[2] == make_pair(5LL, 1),
-          "factorize(360)");
+    check(f.size() == 3 && f[0] == make_pair(2LL, 3) && f[1] == make_pair(3LL, 2) && f[2] == make_pair(5LL, 1), "factorize(360)");
     check(factorize(1).empty(), "factorize(1) は空");
     check(factorize(0).empty(), "factorize(0) は空");
     check(factorize(-5).empty(), "factorize(負数) は空");
@@ -151,11 +147,8 @@ int main() {
     auto t0 = chrono::steady_clock::now();
     ll s = 0;
     for (ll x : xs) s += (ll)factorize(x).size();
-    auto ms = chrono::duration_cast<chrono::milliseconds>(
-                  chrono::steady_clock::now() - t0)
-                  .count();
-    printf("速度 factorize 10^18 x1000    : %lld ms (素因数の種類 計 %lld)\n",
-           (ll)ms, s);
+    auto ms = chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - t0).count();
+    printf("速度 factorize 10^18 x1000    : %lld ms (素因数の種類 計 %lld)\n", (ll)ms, s);
   }
 
   // ---- 速度: 半素数（最悪ケース）----
@@ -172,9 +165,7 @@ int main() {
       auto f = factorize(x);
       if (f.size() != 2 && !(f.size() == 1 && f[0].second == 2)) failed++;
     }
-    auto ms = chrono::duration_cast<chrono::milliseconds>(
-                  chrono::steady_clock::now() - t0)
-                  .count();
+    auto ms = chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - t0).count();
     printf("速度 半素数(10^9 x 10^9) x200 : %lld ms\n", (ll)ms);
   }
 
@@ -183,9 +174,7 @@ int main() {
     auto t0 = chrono::steady_clock::now();
     ll s = 0;
     for (int i = 1; i <= 200000; i++) s += (ll)factorize(i).size();
-    auto ms = chrono::duration_cast<chrono::milliseconds>(
-                  chrono::steady_clock::now() - t0)
-                  .count();
+    auto ms = chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - t0).count();
     printf("速度 factorize 1..2e5         : %lld ms\n", (ll)ms);
   }
 

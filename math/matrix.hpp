@@ -43,10 +43,8 @@ template <class T> struct matrix {
   int h, w;
   std::vector<std::vector<T>> a;
 
-  explicit matrix(int h_ = 0, int w_ = 0)
-      : h(h_), w(w_), a(h_, std::vector<T>(w_, T(0))) {}
-  matrix(const std::vector<std::vector<T>>& v)
-      : h((int)v.size()), w(v.empty() ? 0 : (int)v[0].size()), a(v) {
+  explicit matrix(int h_ = 0, int w_ = 0) : h(h_), w(w_), a(h_, std::vector<T>(w_, T(0))) {}
+  matrix(const std::vector<std::vector<T>>& v) : h((int)v.size()), w(v.empty() ? 0 : (int)v[0].size()), a(v) {
     for (auto& row : v) assert((int)row.size() == w);  // 行の長さを揃えること
   }
 
@@ -187,8 +185,7 @@ template <class T> struct matrix {
  private:
   // Gauss-Jordan。[0, wlim) 列だけをピボット候補にする。
   // 戻り値は階数、piv[i] = i 行目のピボット列
-  static int gauss_(std::vector<std::vector<T>>& A, int wlim,
-                    std::vector<int>& piv) {
+  static int gauss_(std::vector<std::vector<T>>& A, int wlim, std::vector<int>& piv) {
     int H = (int)A.size();
     int r = 0;
     piv.clear();
@@ -206,8 +203,7 @@ template <class T> struct matrix {
       for (int i = 0; i < H; i++) {
         if (i == r || A[i][c] == T(0)) continue;
         T g = A[i][c];
-        for (std::size_t j = 0; j < A[i].size(); j++)
-          A[i][j] = A[i][j] - g * A[r][j];
+        for (std::size_t j = 0; j < A[i].size(); j++) A[i][j] = A[i][j] - g * A[r][j];
       }
       piv.push_back(c);
       r++;
@@ -217,8 +213,7 @@ template <class T> struct matrix {
 };
 
 // 行ベクトル x 行列
-template <class T>
-std::vector<T> operator*(const std::vector<T>& v, const matrix<T>& A) {
+template <class T> std::vector<T> operator*(const std::vector<T>& v, const matrix<T>& A) {
   assert((int)v.size() == A.h);
   std::vector<T> r(A.w, T(0));
   for (int i = 0; i < A.h; i++)

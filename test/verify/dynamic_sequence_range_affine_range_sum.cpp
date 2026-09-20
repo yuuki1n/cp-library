@@ -2,7 +2,6 @@
 // https://judge.yosupo.jp/problem/dynamic_sequence_range_affine_range_sum
 //   g++ -std=gnu++20 -O2 -I../.. -I/path/to/ac-library FILE.cpp
 #include <atcoder/modint>
-
 #include <cstdio>
 #include <vector>
 
