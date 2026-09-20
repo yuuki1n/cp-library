@@ -2,7 +2,8 @@
 
 競技プログラミング用のデータ構造・アルゴリズム集。ヘッダオンリー。
 
-Java 版ライブラリからの移植状況は [PORTING.md](PORTING.md) を参照。
+Java 版ライブラリからの移植状況は [PORTING.md](PORTING.md)、
+ジャッジで検証した記録は [VERIFY.md](VERIFY.md) を参照。
 
 ## ディレクトリ構成
 

@@ -12,6 +12,7 @@ Java 版の資産を C++ に移し替えていく。このファイルはコミ�
    （Eclipse 標準のテンプレートと、デバッグ用の `log` は数えない）
 
 移植の進み具合と verify の進み具合は別物なので、それぞれ分けて数えている。
+ジャッジを通したかどうかは [VERIFY.md](VERIFY.md) を参照。
 
 - **移植済み** 18 / 77（うち verify 済み **1**）
 - **移植不要** 29 / 77（ACL 16・標準ライブラリ 10・対象外 3）
@@ -144,69 +145,8 @@ Java に無い追加分（未 verify）:
 
 ---
 
-## avl_segtree の仕様
+## avl_segtree で採らなかった案
 
-`AVLSegmentTree.java`（306 行）の移植。決めたことを残しておく。
-
-- **型** `avl_segtree<S, op, e, F, mapping, composition, id, rev>`。
-  ACL の `lazy_segtree` と同じ並びで、末尾に反転時の値の直し `rev` を足す
-- **`avl_value`** を継承した型を載せる。`int sz` と `bool fail` を持つ基底で、
-  どちらもライブラリが維持する。ユーザーは `op` の中で `sz` を触らない
-- **`mapping` は ACL と同じ `S mapping(F f, S x)`**。`x.sz` には呼ぶ前に
-  節点の要素数が入っている
-- **Beats** は `mapping` の中で `x.fail = true` を立てる。ライブラリが検知して
-  子へ降りる。`sz` / `fail` の有無は concept で見るので、持たない型も載せられる
-- **節点は `std::vector<node>` のプールに置き、`int` の添字で辿る**。
-  ポインタや参照で持つと `push_back` の再確保で無効になる
-- 葉は「同じ値 k 個」を持てる（ランレングス）。`avl_segtree(n)` が O(1)
-
-段階を分けて進める。
-
-| 段階 | 内容 | 状態 |
-|---|---|---|
-| 1 | AVL の骨格（merge / split / balance）+ build / insert / erase / get / prod / size | 済 |
-| 2 | 遅延伝搬 apply(l, r, f) | 済 |
-| 3 | 区間反転 reverse(l, r) と rev フック | 済 |
-| 4 | 区間巡回シフト rotate(l, r, k) | 済 |
-| 5 | 葉のランレングス圧縮 | 済 |
-| 6 | Beats（fail） | 済 |
-
-全段階が終わり、Java 版の機能はすべて移植できた。
-
-段階 3 まで終われば
-[dynamic_sequence_range_affine_range_sum](https://judge.yosupo.jp/problem/dynamic_sequence_range_affine_range_sum)
-で verify できる。
-
----
-
-## verify 状況
-
-**1 / 18 が verify 済み。** `test/` のテストは総当たりとの突き合わせなので、
-実装の正しさはある程度見ているが、公開ジャッジを通したものはまだ少ない。
-
-| ライブラリ | 状態 | verify 先 |
-|---|---|---|
-| `cumsum` | 未 | [static_range_sum](https://judge.yosupo.jp/problem/static_range_sum) |
-| `cumsum2d` | 未 | 未定。Library Checker に密な 2 次元累積和そのものの問題は無い |
-| `interval_set` | 未 | 未定 |
-| `prime` | 未 | [factorize](https://judge.yosupo.jp/problem/factorize) / [enumerate_primes](https://judge.yosupo.jp/problem/enumerate_primes) |
-| `inversion_count` | 未 | 未定。[static_range_inversions_query](https://judge.yosupo.jp/problem/static_range_inversions_query) は Mo's algorithm 前提で、配列全体の転倒数だけでは通らない |
-| `rle` | 未 | 未定。Library Checker に該当する問題は無い |
-| `avl_segtree` | **済** | [dynamic_sequence_range_affine_range_sum](https://judge.yosupo.jp/problem/dynamic_sequence_range_affine_range_sum) |
-| `union_find` | 未 | 未定 |
-| `monoid_union_find` | 未 | [dynamic_graph_vertex_add_component_sum](https://judge.yosupo.jp/problem/dynamic_graph_vertex_add_component_sum)（`rollback_union_find` と組で Offline Dynamic Connectivity） |
-| `relational_union_find` | 未 | [unionfind_with_potential](https://judge.yosupo.jp/problem/unionfind_with_potential) / [非可換版](https://judge.yosupo.jp/problem/unionfind_with_potential_non_commutative_group) |
-| `rollback_union_find` | 未 | 同上（`monoid_union_find` と組で） |
-| `dynamic_union_find` | 未 | 未定 |
-| `trie` | 未 | 未定。[aho_corasick](https://judge.yosupo.jp/problem/aho_corasick) は別物（AC 自動機） |
-| `binary_trie` | 未 | [set_xor_min](https://judge.yosupo.jp/problem/set_xor_min) |
-| `matrix` | 未 | [matrix_product](https://judge.yosupo.jp/problem/matrix_product) / [pow_of_matrix](https://judge.yosupo.jp/problem/pow_of_matrix) / [matrix_det](https://judge.yosupo.jp/problem/matrix_det) / [matrix_rank](https://judge.yosupo.jp/problem/matrix_rank) / [inverse_matrix](https://judge.yosupo.jp/problem/inverse_matrix) / [system_of_linear_equations](https://judge.yosupo.jp/problem/system_of_linear_equations) |
-| `maxplus_matrix` | 未 | 未定 |
-| `graph` | 未 | `dijkstra` と一緒に検証される |
-| `dijkstra` | 未 | [shortest_path](https://judge.yosupo.jp/problem/shortest_path) |
-
-`relational_union_find` の非可換版は優先度が高い。現状のテストは `plus` と `bit_xor` だけで
-どちらも可換なため、**合成順を間違えていても検出できない**。
-
-verify を通したら、この表の状態を「済」にしてリンクを残し、対応するヘッダの
-`verify:` 欄も `(未 verify)` から実際の URL に書き換える。
+葉に「任意の値を最大 B 個」持たせて節点数を 1/B にする案を検討したが、採らない。
+同じ値をまとめて持つ今の形（`insert(i, x, 10^9)` が節点 1 個）を失うため。
+区間作用のたびに葉が割れるので、痩せた葉を併合し直す管理も別途必要になる。
