@@ -107,13 +107,19 @@ struct avl_segtree {
   /* ---- 確保と解放 ---- */
 
   int alloc() {
+    int i;
     if (free_.empty()) {
       pool.push_back(node{});
-      return (int)pool.size() - 1;
+      i = (int)pool.size() - 1;
+    } else {
+      i = free_.back();
+      free_.pop_back();
     }
-    int i = free_.back();
-    free_.pop_back();
-    pool[i] = node{};
+    // val と laz は呼び出し側が入れ直すか、フラグが false の間は読まれない
+    node& n = pool[i];
+    n.lft = n.rht = -1;
+    n.sz = n.rnk = 1;
+    n.has_laz = n.has_rev = false;
     return i;
   }
   void kill(int i) {
@@ -284,6 +290,51 @@ struct avl_segtree {
     return update(i);
   }
 
+  // k 番目の手前に葉を挿し、戻りながら平衡を直す
+  int insert_(int i, int k, const S& x) {
+    if (pool[i].lft < 0) {  // 葉に着いた。葉と新しい親を 1 つずつ作る
+      int leaf = make(x), p = alloc();
+      pool[p].lft = k == 0 ? leaf : i;
+      pool[p].rht = k == 0 ? i : leaf;
+      return update(p);
+    }
+    push(i);
+    int ls = sz_(pool[i].lft);
+    if (k < ls)
+      pool[i].lft = insert_(pool[i].lft, k, x);
+    else
+      pool[i].rht = insert_(pool[i].rht, k - ls, x);
+    return balance(i);
+  }
+
+  // k 番目の葉を消す。部分木が空になったら -1 を返す
+  int erase_(int i, int k) {
+    if (pool[i].lft < 0) {
+      kill(i);
+      return -1;
+    }
+    push(i);
+    int ls = sz_(pool[i].lft);
+    if (k < ls) {
+      int t = erase_(pool[i].lft, k);
+      if (t < 0) {  // 左が消えたので右の子を親の位置へ繰り上げる
+        int r = pool[i].rht;
+        kill(i);
+        return r;
+      }
+      pool[i].lft = t;
+    } else {
+      int t = erase_(pool[i].rht, k - ls);
+      if (t < 0) {
+        int l = pool[i].lft;
+        kill(i);
+        return l;
+      }
+      pool[i].rht = t;
+    }
+    return balance(i);
+  }
+
   // 葉を書き換えて、戻りながら祖先を作り直す
   void set_(int i, int k, const S& x) {
     if (pool[i].lft < 0) {
@@ -360,13 +411,12 @@ struct avl_segtree {
   // i 番目の手前に x を挿す。i == size() なら末尾に足す
   void insert(int i, const S& x) {
     assert(0 <= i && i <= size());
-    auto [a, b] = split_(root, i);
-    root = merge_(merge_(a, make(x)), b);
+    root = root < 0 ? make(x) : insert_(root, i, x);
   }
 
   void erase(int i) {
     assert(0 <= i && i < size());
-    erase(i, i + 1);
+    root = erase_(root, i);
   }
 
   // [l, r) を消す。l >= r なら何もしない
