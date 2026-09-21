@@ -31,9 +31,6 @@
  *   vll v(n, M.NEG);               // 始点だけ 0 にして K 歩進める
  *   v[s] = 0;
  *   v = v * M.pow(K);
- *
- * verify:
- *   (未 verify)
  */
 template <class T = long long> struct maxplus_matrix {
   static_assert(std::is_signed_v<T>, "T は符号付きであること（NEG に使うため）");

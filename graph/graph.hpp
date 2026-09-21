@@ -17,9 +17,6 @@
  *   graph<ll> g(N);
  *   rep(M) { INT(u, v); LL(w); g.add_edge(--u, --v, w); }
  *   fore(e, g[0]) print(e.to, e.w);
- *
- * verify:
- *   (未 verify)
  */
 template <class W = long long> struct graph {
   using weight_type = W;

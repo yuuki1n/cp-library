@@ -14,9 +14,6 @@
  * 使用例:
  *   cumsum2d<long long> cs(G);
  *   cs(i1, j1, i2, j2);
- *
- * verify:
- *   (未 verify)
  */
 template <class T = long long> struct cumsum2d {
   std::vector<std::vector<T>> s;  // s[i][j] = 左上 i x j の和

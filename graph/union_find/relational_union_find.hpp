@@ -42,12 +42,6 @@ template <class F> F neg(F a) { return -a; }
  *   int e_zero() { return 0; }
  *   int inv_id(int a) { return a; }
  *   relational_union_find<int, op_xor, e_zero, inv_id> uf(N);
- *
- * verify:
- *   (未 verify)
- *   予定: https://judge.yosupo.jp/problem/unionfind_with_potential
- *         https://judge.yosupo.jp/problem/unionfind_with_potential_non_commutative_group
- *         後者は非可換な群での検証。今のテストは可換な演算しか使っていない
  */
 template <class F = long long, F (*op)(F, F) = relational_union_find_internal::add<F>, F (*e)() = relational_union_find_internal::zero<F>,
           F (*inv)(F) = relational_union_find_internal::neg<F>>

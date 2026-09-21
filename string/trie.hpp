@@ -34,9 +34,6 @@
  *
  *   trie<2> u;                       // 番号で渡す
  *   u.add(vi{0, 1, 1, 0});
- *
- * verify:
- *   (未 verify)
  */
 template <int SIGMA = 26, char OFFSET = 'a'> struct trie {
  private:

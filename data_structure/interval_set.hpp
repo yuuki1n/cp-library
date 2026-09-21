@@ -29,9 +29,6 @@
  *   s.insert(5, 8);                  // 3。[1,8) に併合
  *   s.erase(3, 4);                   // 1。[1,3) と [4,8) に分かれる
  *   fore(t, s.intervals()) print(t.fi, t.se);
- *
- * verify:
- *   (未 verify)
  */
 struct interval_set {
  private:

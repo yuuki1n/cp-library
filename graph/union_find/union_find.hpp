@@ -25,9 +25,6 @@
  *   rep(M) { INT(u, v); uf.merge(--u, --v); }
  *   print(uf.group(0));
  *   fore(g, uf.groups()) print(g);
- *
- * verify:
- *   (未 verify)
  */
 struct union_find {
  private:

@@ -10,9 +10,6 @@
  *
  * 使用例:
  *   long long inv = inversion_count(A);
- *
- * verify:
- *   (未 verify)
  */
 template <class T> long long inversion_count(std::vector<T> a) {
   std::size_t n = a.size();

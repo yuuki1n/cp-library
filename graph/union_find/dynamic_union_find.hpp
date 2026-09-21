@@ -27,9 +27,6 @@
  *   uf.merge({0, 0}, {0, 1});
  *   print(uf.vertex_count(), uf.group_count());
  *   fore(k, uf.group({0, 0})) print(k);
- *
- * verify:
- *   (未 verify)
  */
 template <class K, class Map = std::map<K, int>> struct dynamic_union_find {
  private:

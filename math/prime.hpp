@@ -21,11 +21,6 @@
  *   for (auto [p, e] : factorize(360)) print(p, e);   // 2 3 / 3 2 / 5 1
  *   auto ds = divisors(360);
  *   if (is_prime(1000000007)) ...
- *
- * verify:
- *   (未 verify)
- *   予定: https://judge.yosupo.jp/problem/factorize
- *         https://judge.yosupo.jp/problem/enumerate_primes
  */
 
 namespace prime_internal {

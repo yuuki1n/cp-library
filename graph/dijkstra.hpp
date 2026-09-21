@@ -47,10 +47,6 @@ template <class W> constexpr W default_inf() {
  *   print(d.path(N - 1));
  *
  *   dijkstra d2(g, vi{0, 3, 5});     // 多始点
- *
- * verify:
- *   (未 verify)
- *   予定: https://judge.yosupo.jp/problem/shortest_path
  */
 template <class G> struct dijkstra {
   using W = typename G::weight_type;

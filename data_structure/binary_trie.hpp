@@ -33,10 +33,6 @@
  *     if (s.size()) chmax(ans, s.max_value(a));
  *     s.insert(a);
  *   }
- *
- * verify:
- *   (未 verify)
- *   予定: https://judge.yosupo.jp/problem/set_xor_min
  */
 template <int BITS = 30, class T = long long> struct binary_trie {
  private:

@@ -29,15 +29,6 @@
  *
  *   auto x = A.solve(b);
  *   if (x.empty()) print(-1); else print(x[0]);
- *
- * verify:
- *   (未 verify)
- *   予定: https://judge.yosupo.jp/problem/matrix_product
- *         https://judge.yosupo.jp/problem/pow_of_matrix
- *         https://judge.yosupo.jp/problem/matrix_det
- *         https://judge.yosupo.jp/problem/matrix_rank
- *         https://judge.yosupo.jp/problem/inverse_matrix
- *         https://judge.yosupo.jp/problem/system_of_linear_equations
  */
 template <class T> struct matrix {
   int h, w;

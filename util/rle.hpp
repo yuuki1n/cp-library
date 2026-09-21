@@ -18,9 +18,6 @@
  *   rle(string("aaabbc"));      // {('a',3), ('b',2), ('c',1)}
  *   rle(vi{1, 1, 2, 3, 3, 3});  // {(1,2), (2,1), (3,3)}
  *   fore(t, rle(S)) print(t.fi, t.se);
- *
- * verify:
- *   (未 verify)
  */
 template <class C> auto rle(const C& v) {
   using T = std::remove_cvref_t<decltype(*std::begin(v))>;

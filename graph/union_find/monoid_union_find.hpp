@@ -36,10 +36,6 @@ template <class S> S zero() { return S(); }
  *   ll op_max(ll a, ll b) { return max(a, b); }
  *   ll e_min() { return -LINF; }
  *   monoid_union_find<ll, op_max, e_min> mx(W);
- *
- * verify:
- *   (未 verify)
- *   予定: https://judge.yosupo.jp/problem/dynamic_graph_vertex_add_component_sum
  */
 template <class S, S (*op)(S, S) = monoid_union_find_internal::add<S>, S (*e)() = monoid_union_find_internal::zero<S>>
 struct monoid_union_find {

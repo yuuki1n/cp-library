@@ -18,9 +18,6 @@
  * 使用例:
  *   cumsum<long long> cs(A);
  *   cs(l, r);
- *
- * verify:
- *   (未 verify)
  */
 template <class T = long long> struct cumsum {
   std::vector<T> s;  // s[i] = 先頭 i 個の和

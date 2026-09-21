@@ -28,10 +28,6 @@
  *   int t = uf.snapshot();
  *   uf.merge(1, 2);
  *   uf.rollback(t);          // 取り消す
- *
- * verify:
- *   (未 verify)
- *   予定: https://judge.yosupo.jp/problem/dynamic_graph_vertex_add_component_sum
  */
 struct rollback_union_find {
  private:
