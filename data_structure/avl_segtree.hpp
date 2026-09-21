@@ -243,8 +243,7 @@ struct avl_segtree {
   void push(int i) {
     if (pool[i].has_laz) {
       F f = pool[i].laz;
-      pool[i].has_laz = false;
-      pool[i].laz = id();
+      pool[i].has_laz = false;  // laz は次に has_laz が立つとき上書きされる
       apply_all(pool[i].lft, f);
       apply_all(pool[i].rht, f);
     }
