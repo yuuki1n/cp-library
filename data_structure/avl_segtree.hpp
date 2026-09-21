@@ -54,43 +54,19 @@ struct avl_value {
  *   - rotate の k は |k| < r - l であること。負を渡すと右へ回る
  *
  * S に求めること:
- *   - avl_value を継承すると x.sz に要素数が入る。op や mapping で維持しない
- *   - mapping を呼ぶ前に x.sz へ要素数が入っている
- *   - rev(x) は逆順にしたときの集約値。和や min なら既定のまま。
- *     文字列の連結など向きで変わるものだけ指定する
+ *   - avl_value を継承すると x.sz に要素数が入る。自分で維持しなくてよい
+ *   - rev(x) は逆順にしたときの集約値。向きで変わるものだけ指定する
  *
  * F に求めること:
- *   - composition(f, g) は「g を適用してから f」。ACL の lazy_segtree と同じ
- *   - 要らなければ F 以降を省ける。省くと apply は何もしない
- *   - 区間 chmin のようにまとめて適用できないことがあるなら（Beats）、
- *     mapping の中で x.fail = true を立てる。ライブラリが子へ降りて作り直す。
- *     1 要素への作用は必ず適用できること（降りる先が無いため）
+ *   - composition(f, g) は「g のあと f」。ACL の lazy_segtree と同じ
+ *   - 要らなければ F 以降を省ける
+ *   - Beats: まとめて適用できないときは mapping で x.fail = true を立てる。
+ *     1 要素への作用は必ず適用できること
  *
  * 葉のまとめ方:
- *   - 葉は「同じ値が k 個」を持つ。avl_segtree(n) や insert(i, x, k) が節点 1 個
- *     で済み、触られるまで分かれない
- *   - まとまった葉の総積を読むときだけ op を O(log k) 回呼ぶ
- *   - 節点は使い回すので、メモリは同時に存在する葉の数に比例する
- *   - erase(l, r) は捨てる部分木をたどるので、その節点数ぶんかかる。挿入した
- *     ぶんしか消せないのでならし計算量は O(log n) のまま
- *   - 要素数は int に収まる範囲まで。to_vec() は要素の数ぶん作るので、
- *     まとまった葉を大きく取ったまま呼ぶとメモリを食う
- *
- * 使用例:
- *   struct S : avl_value { ll sum = 0; };
- *   S op(S a, S b) { S r; r.sum = a.sum + b.sum; return r; }
- *   S e() { return S{}; }
- *   using F = ll;                                  // 区間加算
- *   S mapping(F f, S x) { x.sum += f * x.sz; return x; }
- *   F composition(F f, F g) { return f + g; }
- *   F id() { return 0; }
- *
- *   avl_segtree<S, op, e, F, mapping, composition, id> t(v);
- *   t.insert(3, x);
- *   t.apply(0, 5, 10);
- *   t.reverse(1, 4);
- *   t.rotate(0, 5, 2);            // 添字 2 の要素が先頭に来る
- *   print(t.prod(0, 5).sum);
+ *   - 葉は「同じ値が k 個」。avl_segtree(n, x) や insert(i, x, k) が節点 1 個で済む
+ *   - まとまった葉の総積は op を O(log k) 回呼ぶ
+ *   - 要素数は int に収まる範囲まで
  *
  * verify:
  *   https://judge.yosupo.jp/problem/dynamic_sequence_range_affine_range_sum
@@ -356,9 +332,8 @@ struct avl_segtree {
     return {l, r};
   }
 
-  // [l, r) を切り出して f に渡し、返ってきた部分木をつなぎ直す。
-  // f は受け取った部分木を好きにしてよく、要らなければ -1 を返す
-  template <class Fn> void on_range_(int l, int r, Fn f) {
+  // [l, r) を切り出して f に渡し、戻り値をつなぎ直す。要らなければ -1 を返す
+  template <class Fn> void splice_(int l, int r, Fn f) {
     auto [a, b] = split_(root, l);
     auto [c, d] = split_(b, r - l);
     root = merge_(merge_(a, f(c)), d);
@@ -516,7 +491,7 @@ struct avl_segtree {
   void erase(int l, int r) {
     assert(0 <= l && r <= size());
     if (l >= r) return;
-    on_range_(l, r, [&](int c) {
+    splice_(l, r, [&](int c) {
       kill_tree(c);
       return -1;
     });
@@ -544,7 +519,7 @@ struct avl_segtree {
   void reverse(int l, int r) {
     assert(0 <= l && r <= size());
     if (l >= r) return;
-    on_range_(l, r, [&](int c) {
+    splice_(l, r, [&](int c) {
       reverse_all(c);
       return c;
     });
@@ -559,7 +534,7 @@ struct avl_segtree {
     assert(-n < k && k < n);  // 丸めない。範囲外は呼び出し側の間違い
     if (k < 0) k += n;
     if (k == 0) return;
-    on_range_(l, r, [&](int c) {
+    splice_(l, r, [&](int c) {
       auto [head, tail] = split_(c, k);  // 前 k 個を後ろへ回す
       return merge_(tail, head);
     });
