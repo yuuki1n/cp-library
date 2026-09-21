@@ -82,9 +82,9 @@ struct avl_segtree {
     int sz = 1;              // 内部節点は部分木の要素数、葉はまとめた個数
     unsigned char rnk = 1;   // 部分木の高さ。sz が int なので 45 以下
     bool has_laz = false;
-    bool has_rev = false;                 // 子へまだ配っていない反転
-    [[no_unique_address]] F laz = id();   // 子へまだ配っていない作用
-    S val;                                // 内部節点は総積、葉は 1 要素ぶんの値
+    bool has_rev = false;                // 子へまだ配っていない反転
+    [[no_unique_address]] F laz = id();  // 子へまだ配っていない作用
+    S val;                               // 内部節点は総積、葉は 1 要素ぶんの値
   };
 
   // 節点はここに置き、必ず int の添字で辿る。
