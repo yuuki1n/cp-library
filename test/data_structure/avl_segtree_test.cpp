@@ -1,7 +1,7 @@
 // data_structure/avl_segtree.hpp の検証。std::vector を素朴に操作したものと
 // 突き合わせる。
 //   g++ -std=gnu++20 -O2 -Wall -Wextra -I.. avl_segtree_test.cpp -o avl_segtree_test
-#include "../data_structure/avl_segtree.hpp"
+#include "../../data_structure/avl_segtree.hpp"
 
 #include <algorithm>
 #include <chrono>

@@ -1,7 +1,7 @@
 // string/trie.hpp / data_structure/binary_trie.hpp の検証。
 // 素朴な map / multiset と突き合わせる。
 //   g++ -std=gnu++20 -O2 -Wall -Wextra -I.. trie_test.cpp -o trie_test
-#include "../string/trie.hpp"
+#include "../../string/trie.hpp"
 
 #include <algorithm>
 #include <chrono>
@@ -12,7 +12,7 @@
 #include <string>
 #include <vector>
 
-#include "../data_structure/binary_trie.hpp"
+#include "../../data_structure/binary_trie.hpp"
 
 using ll = long long;
 using namespace std;

@@ -7,7 +7,7 @@
 #include <cstdio>
 #include <vector>
 
-#include "../../graph/union_find/relational_union_find.hpp"
+#include "../../../../graph/union_find/relational_union_find.hpp"
 
 using F = unsigned;  // mod 998244353 の加法群
 constexpr F MOD = 998244353;

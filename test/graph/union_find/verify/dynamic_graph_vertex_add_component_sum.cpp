@@ -11,7 +11,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "../../graph/union_find/union_find.hpp"
+#include "../../../../graph/union_find/union_find.hpp"
 
 using ll = long long;
 

@@ -1,20 +1,21 @@
-// avl_segtree の verify 用（区間反転）。Library Checker に提出するコード。
-// https://judge.yosupo.jp/problem/range_reverse_range_sum
+// avl_segtree の verify 用（両端の挿入削除と 1 点取得）。Library Checker に提出するコード。
+// https://judge.yosupo.jp/problem/deque
 //   g++ -std=gnu++20 -O2 -I../.. FILE.cpp
 //
-// reverse だけを突く。N = 0 や l == r も来るので、空の木と空区間を素通りできること。
+// insert(0, x) / insert(size(), x) / erase(0) / erase(size() - 1) / get(i) / size() を突く。
+// 端ばかり触るので、平衡が偏らないことの確認にもなる。
 #include <cstdio>
 #include <vector>
 
-#include "../../data_structure/avl_segtree.hpp"
+#include "../../../data_structure/avl_segtree.hpp"
 
 struct S {
-  long long sum = 0;
+  long long v = 0;
 };
-S op(S a, S b) { return S{a.sum + b.sum}; }
+S op(S a, S) { return a; }  // 区間積は使わない
 S e() { return S{}; }
 
-// 作用は使わない。和は向きに依らないので rev も既定のまま
+// 作用も反転も使わないので F 以降は省く
 using tree = avl_segtree<S, op, e>;
 
 namespace {
@@ -41,10 +42,8 @@ long long read_uint() {
 }  // namespace
 
 int main() {
-  int n = (int)read_uint(), q = (int)read_uint();
-  std::vector<S> v(n);
-  for (int i = 0; i < n; i++) v[i].sum = read_uint();
-  tree t(v);
+  int q = (int)read_uint();
+  tree t;  // 空から始める
 
   std::vector<char> out;
   out.reserve(1 << 22);
@@ -61,9 +60,11 @@ int main() {
 
   while (q--) {
     long long type = read_uint();
-    long long l = read_uint(), r = read_uint();
-    if (type == 0) t.reverse(l, r);
-    else put(t.prod(l, r).sum);
+    if (type == 0) t.insert(0, S{read_uint()});
+    else if (type == 1) t.insert(t.size(), S{read_uint()});
+    else if (type == 2) t.erase(0);
+    else if (type == 3) t.erase(t.size() - 1);
+    else put(t.get(read_uint()).v);
   }
   fwrite(out.data(), 1, out.size(), stdout);
   return 0;

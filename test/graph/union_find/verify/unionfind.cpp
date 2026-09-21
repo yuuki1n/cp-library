@@ -4,7 +4,7 @@
 #include <cstdio>
 #include <vector>
 
-#include "../../graph/union_find/union_find.hpp"
+#include "../../../../graph/union_find/union_find.hpp"
 
 namespace {
 char buf[1 << 16];

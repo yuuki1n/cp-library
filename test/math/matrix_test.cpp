@@ -1,6 +1,6 @@
 // math/matrix.hpp / math/matrix_maxplus.hpp の検証。素朴な実装と突き合わせる。
 //   g++ -std=gnu++20 -O2 -Wall -Wextra -I.. -IC:/acl matrix_test.cpp -o matrix_test
-#include "../math/matrix.hpp"
+#include "../../math/matrix.hpp"
 
 #include <algorithm>
 #include <atcoder/modint>
@@ -10,7 +10,7 @@
 #include <string>
 #include <vector>
 
-#include "../math/maxplus_matrix.hpp"
+#include "../../math/maxplus_matrix.hpp"
 
 using ll = long long;
 using namespace std;

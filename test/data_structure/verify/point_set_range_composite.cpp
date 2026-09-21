@@ -8,7 +8,7 @@
 #include <cstdio>
 #include <vector>
 
-#include "../../data_structure/avl_segtree.hpp"
+#include "../../../data_structure/avl_segtree.hpp"
 
 using mint = atcoder::modint998244353;
 

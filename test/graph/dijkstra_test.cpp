@@ -1,6 +1,6 @@
 // graph.hpp / dijkstra.hpp の検証。Bellman-Ford / Floyd-Warshall と突き合わせる。
 //   g++ -std=gnu++20 -O2 -Wall -Wextra -I.. dijkstra_test.cpp -o dijkstra_test
-#include "../graph/dijkstra.hpp"
+#include "../../graph/dijkstra.hpp"
 
 #include <algorithm>
 #include <chrono>
@@ -10,7 +10,7 @@
 #include <string>
 #include <vector>
 
-#include "../graph/graph.hpp"
+#include "../../graph/graph.hpp"
 
 using ll = long long;
 using namespace std;

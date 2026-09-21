@@ -17,7 +17,7 @@ Java 版ライブラリからの移植状況は [PORTING.md](PORTING.md)、
 | `string/` | 文字列（Z-algorithm、ローリングハッシュ、Suffix Array など） |
 | `geometry/` | 幾何（点・線分・円、凸包 など） |
 | `util/` | 汎用ユーティリティ（座標圧縮、二分探索 など） |
-| `test/` | 検証用コード |
+| `test/` | 検証用コード。ライブラリと同じ階層に並べる |
 | `tools/` | 補助スクリプト |
 
 ## 使い方
@@ -134,15 +134,28 @@ VS Code では `.vscode/tasks.json` の `clear lib`（`ctrl+alt+f11`）から呼
 - `_GLIBCXX_DEBUG` ビルド（範囲外アクセスとイテレータの誤用を拾う）
 - 厳しめの警告は参考表示のみ。手元とジャッジで出方が違うので失敗にはしない
 
-テストは失敗したら 0 以外で終了すること。`test/` の各ファイルは
-`*_test.cpp` という名前にする（CI が glob で拾う）。
+テストは失敗したら 0 以外で終了すること。`test/` はライブラリと同じ階層に切り、
+検証するヘッダと同じ場所に `*_test.cpp` という名前で置く
+（`data_structure/cumsum.hpp` なら `test/data_structure/cumsum_test.cpp`）。
+CI は `find` で再帰的に拾う。
 
 速度計測は `#ifdef _GLIBCXX_DEBUG` で囲んで省略する。デバッグビルドで
 測った時間に意味がなく、CI が無駄に長くなるため。
 
+機能ごとに細かく測りたいものは `*_bench.cpp` を別に置く。`*_test.cpp` ではないので
+CI では回らない（測定は環境依存で揺れるため）。手元で実装を比べるときに使う。
+
+```
+g++ -std=gnu++20 -O2 -Wall -Wextra -I. test/graph/union_find/union_find_bench.cpp -o bench
+./bench                    # 既定の大きさ
+./bench 1000000            # 大きさを変える
+./bench 200000 400000 key  # 名前に key を含む項目だけ
+```
+
 ## verify
 
-`test/verify/` に、Library Checker や AtCoder に提出するコードを置く。
+検証するヘッダと同じ階層の `verify/` に、Library Checker や AtCoder に提出する
+コードを置く（`graph/union_find/` なら `test/graph/union_find/verify/`）。
 ジャッジに投げて AC を取ったら、[VERIFY.md](VERIFY.md) の表を「済」にして問題 URL を
 残す。記録はこの 1 か所だけにまとめる。
 
@@ -153,18 +166,19 @@ VS Code では `.vscode/tasks.json` の `clear lib`（`ctrl+alt+f11`）から呼
 `#include "../../..."` を残したまま出すとコンパイルエラーになる。
 
 ```
-python tools/bundle.py test/verify/foo.cpp -o test/verify/submit/foo.cpp
+python tools/bundle.py test/<階層>/verify/foo.cpp     # クリップボードに入る
 ```
 
-`test/verify/submit/` は生成物なので `.gitignore` に入れてある。古いものを提出
-しないよう、提出のたびに作り直す。
+**まとめたものはリポジトリに残さない。** 古いものを提出する事故を防ぐため、
+提出のたびに作り直してそのまま貼る。ファイルが要るときは `-o`、
+パイプに流すときは `--stdout`。
 
 **提出する前に手元で回す。** `tools/verify_local.py` が、本物のテストケースで
 全ケースを流して判定まで出す。bundle してからビルドするので、相対 include が
 残っていれば（＝提出したら CE になる状態なら）ここで分かる。
 
 ```
-python tools/verify_local.py test/verify/foo.cpp
+python tools/verify_local.py test/<階層>/verify/foo.cpp
 ```
 
 初回だけテストケースの生成元を用意する。cp-library の 1 つ上に置けば引数は要らない。

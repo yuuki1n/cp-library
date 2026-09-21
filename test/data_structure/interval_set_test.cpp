@@ -1,6 +1,6 @@
 // data_structure/interval_set.hpp の検証。set<int> による総当たりと突き合わせる。
 //   g++ -std=gnu++20 -O2 -Wall -Wextra -I.. interval_set_test.cpp -o interval_set_test
-#include "../data_structure/interval_set.hpp"
+#include "../../data_structure/interval_set.hpp"
 
 #include <chrono>
 #include <climits>

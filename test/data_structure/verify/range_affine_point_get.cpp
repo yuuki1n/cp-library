@@ -1,11 +1,13 @@
-// avl_segtree の verify 用。Library Checker に提出するコード。
-// https://judge.yosupo.jp/problem/dynamic_sequence_range_affine_range_sum
+// avl_segtree の verify 用（1 点取得）。Library Checker に提出するコード。
+// https://judge.yosupo.jp/problem/range_affine_point_get
 //   g++ -std=gnu++20 -O2 -I../.. -I/path/to/ac-library FILE.cpp
+//
+// get(i) を突く。区間作用と交互に来るので、遅延が溜まった状態で 1 点を読む。
 #include <atcoder/modint>
 #include <cstdio>
 #include <vector>
 
-#include "../../data_structure/avl_segtree.hpp"
+#include "../../../data_structure/avl_segtree.hpp"
 
 using mint = atcoder::modint998244353;
 
@@ -27,11 +29,9 @@ S mapping(F f, S x) {
   x.sum = f.b * x.sum + f.c * mint(x.sz);
   return x;
 }
-// f(g(x)) = b1 (b2 x + c2) + c1
 F composition(F f, F g) { return F{f.b * g.b, f.b * g.c + f.c}; }
 F id() { return F{}; }
 
-// 和は向きに依らないので rev は既定のまま
 using tree = avl_segtree<S, op, e, F, mapping, composition, id>;
 
 namespace {
@@ -79,24 +79,11 @@ int main() {
   while (q--) {
     unsigned type = read_uint();
     if (type == 0) {
-      int i = (int)read_uint();
-      S x;
-      x.sum = mint::raw((int)read_uint());
-      t.insert(i, x);
-    } else if (type == 1) {
-      t.erase((int)read_uint());
-    } else if (type == 2) {
       int l = (int)read_uint(), r = (int)read_uint();
-      t.reverse(l, r);
-    } else if (type == 3) {
-      int l = (int)read_uint(), r = (int)read_uint();
-      F f;
-      f.b = mint::raw((int)read_uint());
-      f.c = mint::raw((int)read_uint());
-      t.apply(l, r, f);
+      mint b = mint::raw((int)read_uint()), c = mint::raw((int)read_uint());
+      t.apply(l, r, F{b, c});
     } else {
-      int l = (int)read_uint(), r = (int)read_uint();
-      put(t.prod(l, r).sum.val());
+      put(t.get((int)read_uint()).sum.val());
     }
   }
   fwrite(out.data(), 1, out.size(), stdout);

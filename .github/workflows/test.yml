@@ -19,44 +19,40 @@ jobs:
 
       # 本番と同じ設定。まずこれが通ることを確かめる
       - name: 通常ビルドで全テスト
-        working-directory: test
         run: |
-          for f in *_test.cpp; do
+          for f in $(find test -name '*_test.cpp' | sort); do
             echo "::group::$f"
-            g++ -std=gnu++20 -O2 -Wall -Wextra -I.. -I"$HOME/ac-library" "$f" -o run
+            g++ -std=gnu++20 -O2 -Wall -Wextra -I. -I"$HOME/ac-library" "$f" -o run
             ./run
             echo "::endgroup::"
           done
 
       # 範囲外アクセスとイテレータの誤用を拾う。速度計測は自動で省略される
       - name: _GLIBCXX_DEBUG で全テスト
-        working-directory: test
         run: |
-          for f in *_test.cpp; do
+          for f in $(find test -name '*_test.cpp' | sort); do
             echo "::group::$f"
-            g++ -std=gnu++20 -O1 -Wall -Wextra -D_GLIBCXX_DEBUG -I.. -I"$HOME/ac-library" "$f" -o run_dbg
+            g++ -std=gnu++20 -O1 -Wall -Wextra -D_GLIBCXX_DEBUG -I. -I"$HOME/ac-library" "$f" -o run_dbg
             ./run_dbg
             echo "::endgroup::"
           done
 
       # 提出用のコードはジャッジ側でしか実行できないので、ビルドだけ確かめる
       - name: verify 用コードをビルド
-        working-directory: test/verify
         run: |
-          for f in *.cpp; do
+          for f in $(find test -path '*/verify/*.cpp' | sort); do
             echo "::group::$f"
-            g++ -std=gnu++20 -O2 -Wall -Wextra -I../.. -I"$HOME/ac-library"                 -fsyntax-only "$f"
+            g++ -std=gnu++20 -O2 -Wall -Wextra -I. -I"$HOME/ac-library" -fsyntax-only "$f"
             echo "::endgroup::"
           done
 
       # 落ちても止めない。手元とジャッジで警告の出方が違うことがあるため
       - name: 厳しめの警告（参考）
         continue-on-error: true
-        working-directory: test
         run: |
-          for f in *_test.cpp; do
+          for f in $(find test -name '*_test.cpp' | sort); do
             echo "::group::$f"
             g++ -std=gnu++20 -O2 -Wall -Wextra -Wshadow -Wconversion -Wsign-conversion \
-                -Wuseless-cast -fsyntax-only -I.. -I"$HOME/ac-library" "$f"
+                -Wuseless-cast -fsyntax-only -I. -I"$HOME/ac-library" "$f"
             echo "::endgroup::"
           done

@@ -1,6 +1,6 @@
 // data_structure/cumsum.hpp の検証。総当たりと突き合わせる。
 //   g++ -std=gnu++20 -O2 -Wall -Wextra -I.. cumsum_test.cpp -o cumsum_test
-#include "../data_structure/cumsum.hpp"
+#include "../../data_structure/cumsum.hpp"
 
 #include <cstdio>
 #include <random>

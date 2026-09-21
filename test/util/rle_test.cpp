@@ -1,6 +1,6 @@
 // util/rle.hpp の検証。素朴な実装と突き合わせる。
 //   g++ -std=gnu++20 -O2 -Wall -Wextra -I.. rle_test.cpp -o rle_test
-#include "../util/rle.hpp"
+#include "../../util/rle.hpp"
 
 #include <array>
 #include <chrono>

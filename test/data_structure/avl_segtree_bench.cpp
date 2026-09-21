@@ -18,7 +18,7 @@
 #include <string>
 #include <vector>
 
-#include "../data_structure/avl_segtree.hpp"
+#include "../../data_structure/avl_segtree.hpp"
 
 using ll = long long;
 using namespace std;

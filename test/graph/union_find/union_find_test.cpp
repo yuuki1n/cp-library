@@ -6,9 +6,9 @@ using namespace std;
 #include <atcoder/dsu>
 using namespace atcoder;
 
-#include "../graph/union_find/keyed_union_find.hpp"
-#include "../graph/union_find/relational_union_find.hpp"
-#include "../graph/union_find/union_find.hpp"
+#include "../../../graph/union_find/keyed_union_find.hpp"
+#include "../../../graph/union_find/relational_union_find.hpp"
+#include "../../../graph/union_find/union_find.hpp"
 
 int ng = 0;        // 今のブロックの NG 件数（report のたびに 0 に戻す）
 int ng_total = 0;  // 全体の NG 件数

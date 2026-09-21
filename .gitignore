@@ -7,6 +7,10 @@ a.out
 main
 main_debug
 
+# Python の中間生成物
+__pycache__/
+*.pyc
+
 # ローカル入出力
 input.txt
 output.txt
@@ -18,9 +22,6 @@ expected.txt
 *.swp
 Thumbs.db
 desktop.ini
-
-# 提出用にまとめたファイル。tools/bundle.py で作り直せる生成物
-test/verify/submit/
 
 # verify_local.py の作業用。失敗したときだけ残る
 .verify_tmp/

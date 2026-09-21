@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""test/verify/ のコードを Library Checker のテストケースで手元で検証する。
+"""test/<階層>/verify/ のコードを Library Checker のテストケースで手元で検証する。
 
 問題のテストケースは library-checker-problems から生成する。初回だけ用意する。
 
@@ -9,8 +9,8 @@
 
 使い方:
 
-    python tools/verify_local.py test/verify/foo.cpp
-    python tools/verify_local.py test/verify/foo.cpp --regen   # ケースを作り直す
+    python tools/verify_local.py test/<階層>/verify/foo.cpp
+    python tools/verify_local.py test/<階層>/verify/foo.cpp --regen   # ケースを作り直す
 
 問題名はソース冒頭の judge.yosupo.jp の URL から拾う。ケースが無ければ
 generate.py を呼んで作る。ビルドは bundle 後の 1 ファイルで行い、提出するものと
@@ -51,7 +51,7 @@ def run(cmd, **kw):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument('src', help='test/verify/ のソース')
+    ap.add_argument('src', help='test/<階層>/verify/ のソース')
     ap.add_argument('--problems', default=DEFAULT_PROBLEMS)
     ap.add_argument('--acl', default=DEFAULT_ACL)
     ap.add_argument('--regen', action='store_true', help='ケースを作り直す')

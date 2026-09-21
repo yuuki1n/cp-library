@@ -1,6 +1,6 @@
 // util/inversion_count.hpp の検証。総当たりと突き合わせる。
 //   g++ -std=gnu++20 -O2 -Wall -Wextra -I.. inversion_count_test.cpp -o inversion_count_test
-#include "../util/inversion_count.hpp"
+#include "../../util/inversion_count.hpp"
 
 #include <algorithm>
 #include <chrono>

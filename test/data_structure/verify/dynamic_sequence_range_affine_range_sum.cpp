@@ -1,14 +1,11 @@
-// avl_segtree の verify 用（N が大きい場合）。Library Checker に提出するコード。
-// https://judge.yosupo.jp/problem/range_affine_range_sum_large_array
+// avl_segtree の verify 用。Library Checker に提出するコード。
+// https://judge.yosupo.jp/problem/dynamic_sequence_range_affine_range_sum
 //   g++ -std=gnu++20 -O2 -I../.. -I/path/to/ac-library FILE.cpp
-//
-// N <= 10^9。初期値がすべて 0 なので、同じ値をまとめた葉 1 個から始められる。
-// 触られた範囲だけが割れていくので、節点は Q に比例する数しか作られない。
 #include <atcoder/modint>
 #include <cstdio>
 #include <vector>
 
-#include "../../data_structure/avl_segtree.hpp"
+#include "../../../data_structure/avl_segtree.hpp"
 
 using mint = atcoder::modint998244353;
 
@@ -48,12 +45,12 @@ int getc_() {
   }
   return buf[bl++];
 }
-long long read_uint() {
+unsigned read_uint() {
   int c = getc_();
   while (c < '0') c = getc_();
-  long long x = 0;
+  unsigned x = 0;
   while (c >= '0') {
-    x = x * 10 + (c - '0');
+    x = x * 10 + unsigned(c - '0');
     c = getc_();
   }
   return x;
@@ -61,10 +58,10 @@ long long read_uint() {
 }  // namespace
 
 int main() {
-  long long n = read_uint();
-  int q = (int)read_uint();
-
-  tree t(n, S{});  // 0 が n 個。葉 1 個なので O(1)
+  int n = (int)read_uint(), q = (int)read_uint();
+  std::vector<S> a(n);
+  for (int i = 0; i < n; i++) a[i].sum = mint::raw((int)read_uint());
+  tree t(a);
 
   std::vector<char> out;
   out.reserve(1 << 22);
@@ -80,12 +77,25 @@ int main() {
   };
 
   while (q--) {
-    unsigned type = (unsigned)read_uint();
-    long long l = read_uint(), r = read_uint();
+    unsigned type = read_uint();
     if (type == 0) {
-      mint b = mint::raw((int)read_uint()), c = mint::raw((int)read_uint());
-      t.apply(l, r, F{b, c});
+      int i = (int)read_uint();
+      S x;
+      x.sum = mint::raw((int)read_uint());
+      t.insert(i, x);
+    } else if (type == 1) {
+      t.erase((int)read_uint());
+    } else if (type == 2) {
+      int l = (int)read_uint(), r = (int)read_uint();
+      t.reverse(l, r);
+    } else if (type == 3) {
+      int l = (int)read_uint(), r = (int)read_uint();
+      F f;
+      f.b = mint::raw((int)read_uint());
+      f.c = mint::raw((int)read_uint());
+      t.apply(l, r, f);
     } else {
+      int l = (int)read_uint(), r = (int)read_uint();
       put(t.prod(l, r).sum.val());
     }
   }

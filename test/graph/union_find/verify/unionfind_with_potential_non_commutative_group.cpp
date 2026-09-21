@@ -9,7 +9,7 @@
 #include <utility>
 #include <vector>
 
-#include "../../graph/union_find/relational_union_find.hpp"
+#include "../../../../graph/union_find/relational_union_find.hpp"
 
 using mint = atcoder::modint998244353;
 using M = std::array<std::array<mint, 2>, 2>;
