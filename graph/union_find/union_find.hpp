@@ -7,6 +7,7 @@
  * union_find : 1 つの成分を O(|成分|) で取り出せる Union-Find。ならし O(a(n))
  *
  *   merge(a, b)     併合する。実際に併合したら true
+ *   merge(a, b, f)  併合したとき f(残る根, 消える根) を呼ぶ
  *   leader(x)       成分の代表頂点
  *   same(a, b) / size(x)
  *   group_count()   連結成分の個数
@@ -56,6 +57,10 @@ struct union_find {
 
   // 併合する。もともと別の成分だったら true
   bool merge(int a, int b) {
+    return merge(a, b, [](int, int) {});
+  }
+  // 併合したとき f(残る根, 消える根) を呼ぶ。成分ごとの値を自分で持ちたいときに使う
+  template <class F> bool merge(int a, int b, F f) {
     int x = leader(a), y = leader(b);
     if (x == y) return false;
     if (-dat[x] < -dat[y]) std::swap(x, y);  // x を大きい方に
@@ -63,6 +68,7 @@ struct union_find {
     dat[x] += dat[y];
     dat[y] = x;
     num--;
+    f(x, y);
     return true;
   }
 

@@ -8,9 +8,12 @@
  * rollback_union_find : 併合を巻き戻せる Union-Find
  *
  *   merge(a, b)   併合する。実際に併合したら true          O(log n)
+ *   merge(a, b, f)   併合したとき f(残る根, 消える根) を呼ぶ
  *   undo()        直前の merge を 1 回取り消す              O(1)
+ *   undo(f)       取り消す直前に f(残る根, 消える根) を呼ぶ
  *   snapshot()    今までに呼んだ merge の回数
  *   rollback(t)   merge を t 回呼んだ時点まで戻す
+ *   rollback(t, f)
  *   group(x)      x と同じ成分の頂点     O((log n) + |成分|)
  *   groups()      連結成分ごとの頂点     O(n log n)
  *   leader / same / size                                   O(log n)
@@ -28,6 +31,11 @@
  *   int t = uf.snapshot();
  *   uf.merge(1, 2);
  *   uf.rollback(t);          // 取り消す
+ *
+ *   // 成分ごとの値を持つなら、merge と undo に打ち消し合う関数を渡す
+ *   vector<ll> sum(N);
+ *   uf.merge(a, b, [&](int to, int from) { sum[to] += sum[from]; });
+ *   uf.undo(      [&](int to, int from) { sum[to] -= sum[from]; });
  */
 struct rollback_union_find {
  private:
@@ -52,6 +60,10 @@ struct rollback_union_find {
 
   // 併合する。もともと別の成分だったら true
   bool merge(int a, int b) {
+    return merge(a, b, [](int, int) {});
+  }
+  // 併合したとき f(残る根, 消える根) を呼ぶ。undo にも対になる関数を渡すこと
+  template <class F> bool merge(int a, int b, F f) {
     int x = leader(a), y = leader(b);
     if (x == y) {
       hst.push_back({-1, 0, 0});  // undo の回数を merge と合わせるための空記録
@@ -63,15 +75,19 @@ struct rollback_union_find {
     dat[x] += dat[y];
     dat[y] = x;
     num--;
+    f(x, y);
     return true;
   }
 
   // 直前の merge を 1 回取り消す。履歴が空なら何もしない
-  void undo() {
+  void undo() { undo([](int, int) {}); }
+  // 取り消す直前に f(残る根, 消える根) を呼ぶ。merge に渡したものを打ち消す関数を渡す
+  template <class F> void undo(F f) {
     if (hst.empty()) return;
     auto [y, dy, x] = hst.back();
     hst.pop_back();
     if (y < 0) return;
+    f(x, y);
     dat[y] = dy;
     dat[x] -= dy;
     std::swap(nxt[x], nxt[y]);  // 交換の取り消しはもう一度交換するだけ
@@ -82,7 +98,10 @@ struct rollback_union_find {
   int snapshot() const { return (int)hst.size(); }
   // merge を t 回呼んだ時点まで戻す
   void rollback(int t) {
-    while (!hst.empty() && (int)hst.size() > t) undo();
+    rollback(t, [](int, int) {});
+  }
+  template <class F> void rollback(int t, F f) {
+    while (!hst.empty() && (int)hst.size() > t) undo(f);
   }
 
   // 構築直後の状態に戻す（大きさはそのまま）。履歴も捨てる

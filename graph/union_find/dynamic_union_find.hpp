@@ -7,6 +7,7 @@
  *
  *   add(x)          頂点 x を足す。新しく足したら true
  *   merge(a, b)     知らないキーは自動で足す。実際に併合したら true
+ *   merge(a, b, f)  併合したとき f(残る根, 消える根) を呼ぶ。渡すのは内部番号
  *   leader(x)       成分の代表キー
  *   same(a, b) / size(x)
  *   group_count()   連結成分の個数
@@ -83,6 +84,10 @@ template <class K, class Map = std::map<K, int>> struct dynamic_union_find {
 
   // 併合する。もともと別の成分だったら true
   bool merge(const K& a, const K& b) {
+    return merge(a, b, [](int, int) {});
+  }
+  // 併合したとき f(残る根, 消える根) を呼ぶ。渡すのはキーではなく内部番号
+  template <class F> bool merge(const K& a, const K& b, F f) {
     int x = root(id(a)), y = root(id(b));
     if (x == y) return false;
     if (-dat[x] < -dat[y]) std::swap(x, y);  // x を大きい方に
@@ -90,6 +95,7 @@ template <class K, class Map = std::map<K, int>> struct dynamic_union_find {
     dat[x] += dat[y];
     dat[y] = x;
     num--;
+    f(x, y);
     return true;
   }
 

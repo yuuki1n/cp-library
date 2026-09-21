@@ -256,6 +256,55 @@ int main() {
     report("relational_union_find（非可換 / 3 次対称群）");
   }
 
+  {  // ---- merge / undo のコールバック（成分ごとの和を自分で持つ）----
+    ng = 0;
+    for (int iter = 0; iter < 300; iter++) {
+      int n = 1 + (int)(rng() % 10);
+      vector<long long> w(n);
+      for (auto& x : w) x = (long long)(rng() % 20) - 10;
+
+      union_find uf0(n);
+      vector<long long> s0 = w;  // union_find 側。コールバックで維持する
+      rollback_union_find uf(n);
+      vector<long long> s1 = w;  // rollback 側
+      vector<pair<int, int>> es;   // rollback 側に今入っている辺
+      vector<pair<int, int>> es0;  // union_find 側（巻き戻さないので増える一方）
+      vector<pair<int, int>> snap;  // {merge の回数, 辺の本数}
+
+      for (int q = 0; q < 30; q++) {
+        int k = (int)(rng() % 4);
+        if (k <= 1) {
+          int a = (int)(rng() % n), b = (int)(rng() % n);
+          uf0.merge(a, b, [&](int to, int from) { s0[to] += s0[from]; });
+          uf.merge(a, b, [&](int to, int from) { s1[to] += s1[from]; });
+          es.push_back({a, b}), es0.push_back({a, b});
+        } else if (k == 2) {
+          snap.push_back({uf.snapshot(), (int)es.size()});
+        } else if (!snap.empty()) {
+          auto [t, m] = snap.back();
+          snap.pop_back();
+          uf.rollback(t, [&](int to, int from) { s1[to] -= s1[from]; });
+          es.resize(m);
+        }
+        // 参照実装: 今の辺集合から成分と和を作り直す
+        Naive nv(n);
+        for (auto [a, b] : es) nv.unite(a, b);
+        vector<long long> want(n, 0);
+        for (int i = 0; i < n; i++) want[nv.root(i)] += w[i];
+        for (int x = 0; x < n; x++) {
+          check(s1[uf.leader(x)] == want[nv.root(x)], "rollback のコールバックで和が合う");
+          check(uf.same(x, 0) == nv.same(x, 0), "rollback のコールバックで連結性が合う");
+        }
+        Naive nv0(n);
+        for (auto [a, b] : es0) nv0.unite(a, b);
+        vector<long long> want0(n, 0);
+        for (int i = 0; i < n; i++) want0[nv0.root(i)] += w[i];
+        for (int x = 0; x < n; x++) check(s0[uf0.leader(x)] == want0[nv0.root(x)], "union_find のコールバックで和が合う");
+      }
+    }
+    report("merge / undo のコールバック");
+  }
+
   {  // ---- dynamic_union_find ----
     ng = 0;
     for (int iter = 0; iter < 200; iter++) {

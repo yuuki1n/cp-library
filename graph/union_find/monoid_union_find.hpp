@@ -12,9 +12,13 @@ template <class S> S zero() { return S(); }
  * monoid_union_find<S, op, e> : 連結成分ごとに可換モノイドの総積を持つ
  * Union-Find。ならし O(a(n))
  *
+ *   非推奨。同じことは union_find の merge コールバックでも書ける。
+ *   値の更新を付け忘れられない利点があるので残してある
+ *
  *   monoid_union_find(n)    すべて e() で初期化
  *   monoid_union_find(v)    頂点 i の初期値を v[i] とする
  *   merge(a, b)             併合する。実際に併合したら true
+ *   merge(a, b, f)          値に加えて f(残る根, 消える根) も呼ぶ
  *   prod(x)                 x の属する成分の総積
  *   apply(x, val)           x の属する成分の値に val を合成する
  *   leader(x)               成分の代表頂点
@@ -73,6 +77,10 @@ struct monoid_union_find {
 
   // 併合する。もともと別の成分だったら true
   bool merge(int a, int b) {
+    return merge(a, b, [](int, int) {});
+  }
+  // 値に加えて自分のデータも動かしたいとき、f(残る根, 消える根) を渡す
+  template <class F> bool merge(int a, int b, F f) {
     int x = leader(a), y = leader(b);
     if (x == y) return false;
     S m = op(val[x], val[y]);
@@ -82,6 +90,7 @@ struct monoid_union_find {
     dat[y] = x;
     val[x] = std::move(m);
     num--;
+    f(x, y);
     return true;
   }
 

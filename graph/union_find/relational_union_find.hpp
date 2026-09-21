@@ -18,6 +18,7 @@ template <class F> F neg(F a) { return -a; }
  *
  *   relational_union_find(n)
  *   merge(u, v, f)      diff(u, v) == f を入れる。矛盾したら false
+ *   merge(u, v, f, cb)  併合したとき cb(残る根, 消える根) を呼ぶ
  *   consistent(u, v, f) 入れずに矛盾しないかだけ調べる
  *   diff(u, v)          v の値 - u の値。same(u, v) が前提
  *   group(x)            x と同じ成分の頂点   O(a(n) + |成分|)
@@ -78,6 +79,10 @@ struct relational_union_find {
 
   // diff(u, v) == f という制約を入れる。既存の制約と矛盾したら false
   bool merge(int u, int v, F f) {
+    return merge(u, v, f, [](int, int) {});
+  }
+  // 併合したとき cb(残る根, 消える根) を呼ぶ。成分ごとの値を自分で持ちたいときに使う
+  template <class Cb> bool merge(int u, int v, F f, Cb cb) {
     int x = leader(u), y = leader(v);
     if (x == y) return diff(u, v) == f;
     // 根 x から根 y への関係 = (x→u) + (u→v) + (v→y)
@@ -91,6 +96,7 @@ struct relational_union_find {
     dat[y] = x;
     rel[y] = g;
     num--;
+    cb(x, y);
     return true;
   }
 
