@@ -79,11 +79,11 @@ struct avl_segtree {
   struct node {
     int lft = -1, rht = -1;  // 子の添字。葉は -1
     int sz = 1;              // 内部節点は部分木の要素数、葉はまとめた個数
-    int rnk = 1;             // 部分木の高さ
-    S val;                   // 内部節点は総積、葉は 1 要素ぶんの値
-    F laz = id();            // 子へまだ配っていない作用
+    unsigned char rnk = 1;   // 部分木の高さ。sz が int なので 45 以下
     bool has_laz = false;
-    bool has_rev = false;  // 子へまだ配っていない反転
+    bool has_rev = false;                 // 子へまだ配っていない反転
+    [[no_unique_address]] F laz = id();   // 子へまだ配っていない作用
+    S val;                                // 内部節点は総積、葉は 1 要素ぶんの値
   };
 
   // 節点はここに置き、必ず int の添字で辿る。
@@ -259,7 +259,7 @@ struct avl_segtree {
     node& n = pool[i];
     if (n.lft < 0) return i;
     n.sz = sz_(n.lft) + sz_(n.rht);
-    n.rnk = std::max(rnk_(n.lft), rnk_(n.rht)) + 1;
+    n.rnk = (unsigned char)(std::max(rnk_(n.lft), rnk_(n.rht)) + 1);
     n.val = op(agg_(n.lft), agg_(n.rht));
     set_sz(n.val, n.sz);
     // 節点に持つ値は必ず fail を下ろしておく。op が入力を使い回しても残らない
@@ -422,6 +422,23 @@ struct avl_segtree {
     return balance(i);
   }
 
+  // k 番目の葉まで降りて値だけ返す。op も pow_ も呼ばない
+  S get_(int i, int k) {
+    while (pool[i].lft >= 0) {
+      push(i);
+      int ls = sz_(pool[i].lft);
+      if (k < ls) {
+        i = pool[i].lft;
+      } else {
+        k -= ls;
+        i = pool[i].rht;
+      }
+    }
+    S v = pool[i].val;
+    set_sz(v, 1);
+    return v;
+  }
+
   S prod_(int i, int l, int r) {
     if (i < 0 || l >= r) return zero_();
     if (pool[i].lft < 0) return pow_(pool[i].val, r - l);  // 葉
@@ -542,7 +559,7 @@ struct avl_segtree {
 
   S get(int i) {
     assert(0 <= i && i < size());
-    return prod_(root, i, i + 1);
+    return get_(root, i);
   }
 
   // [l, r) の総積。l >= r なら e()
