@@ -60,12 +60,9 @@ int main() {
       auto r = rle(s);
       // 素朴に作ったものと比べる
       vector<pair<char, ll>> want;
-      for (char c : s) {
-        if (!want.empty() && want.back().first == c)
-          want.back().second++;
-        else
-          want.emplace_back(c, 1);
-      }
+      for (char c : s)
+        if (!want.empty() && want.back().first == c) want.back().second++;
+        else want.emplace_back(c, 1);
       check(r == want, "素朴な実装と一致");
       string back;
       for (auto& [c, k] : r) back += string((size_t)k, c);

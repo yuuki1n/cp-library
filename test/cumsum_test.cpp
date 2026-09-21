@@ -62,10 +62,8 @@ int main() {
       vector<int> a;
       for (int i = 0; i < n; i++) {
         int x = int(rng() % 2001) - 1000;
-        if (i & 1)
-          cs += x;
-        else
-          cs.push_back(x);
+        if (i & 1) cs += x;
+        else cs.push_back(x);
         a.push_back(x);
       }
       if ((int)cs.size() != n) bad++;

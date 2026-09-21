@@ -24,20 +24,12 @@ struct S : avl_value {
 S op(S a, S b) {
   S r;
   r.sum = a.sum + b.sum;
-  if (a.mx > b.mx) {
-    r.mx = a.mx, r.cmx = a.cmx, r.mx2 = std::max(a.mx2, b.mx);
-  } else if (a.mx < b.mx) {
-    r.mx = b.mx, r.cmx = b.cmx, r.mx2 = std::max(a.mx, b.mx2);
-  } else {
-    r.mx = a.mx, r.cmx = a.cmx + b.cmx, r.mx2 = std::max(a.mx2, b.mx2);
-  }
-  if (a.mn < b.mn) {
-    r.mn = a.mn, r.cmn = a.cmn, r.mn2 = std::min(a.mn2, b.mn);
-  } else if (a.mn > b.mn) {
-    r.mn = b.mn, r.cmn = b.cmn, r.mn2 = std::min(a.mn, b.mn2);
-  } else {
-    r.mn = a.mn, r.cmn = a.cmn + b.cmn, r.mn2 = std::min(a.mn2, b.mn2);
-  }
+  if (a.mx > b.mx) r.mx = a.mx, r.cmx = a.cmx, r.mx2 = std::max(a.mx2, b.mx);
+  else if (a.mx < b.mx) r.mx = b.mx, r.cmx = b.cmx, r.mx2 = std::max(a.mx, b.mx2);
+  else r.mx = a.mx, r.cmx = a.cmx + b.cmx, r.mx2 = std::max(a.mx2, b.mx2);
+  if (a.mn < b.mn) r.mn = a.mn, r.cmn = a.cmn, r.mn2 = std::min(a.mn2, b.mn);
+  else if (a.mn > b.mn) r.mn = b.mn, r.cmn = b.cmn, r.mn2 = std::min(a.mn, b.mn2);
+  else r.mn = a.mn, r.cmn = a.cmn + b.cmn, r.mn2 = std::min(a.mn2, b.mn2);
   return r;
 }
 // 空の値。op の単位元になっている（-INF は必ず負け、INF は必ず勝つ）
@@ -63,10 +55,8 @@ S mapping(F f, S x) {
       return x;
     }
     x.sum += (f.lo - x.mn) * x.cmn;
-    if (x.mx == x.mn)
-      x.mx = f.lo;  // 全部同じ値だった
-    else if (x.mx2 == x.mn)
-      x.mx2 = f.lo;
+    if (x.mx == x.mn) x.mx = f.lo;  // 全部同じ値だった
+    else if (x.mx2 == x.mn) x.mx2 = f.lo;
     x.mn = f.lo;
   }
   if (f.hi < x.mx) {  // chmin。最大値だけが下がるなら、まとめて適用できる
@@ -75,10 +65,8 @@ S mapping(F f, S x) {
       return x;
     }
     x.sum -= (x.mx - f.hi) * x.cmx;
-    if (x.mn == x.mx)
-      x.mn = f.hi;
-    else if (x.mn2 == x.mx)
-      x.mn2 = f.hi;
+    if (x.mn == x.mx) x.mn = f.hi;
+    else if (x.mn2 == x.mx) x.mn2 = f.hi;
     x.mx = f.hi;
   }
   return x;
@@ -152,15 +140,10 @@ int main() {
   while (q--) {
     int type = (int)read_int();
     int l = (int)read_int(), r = (int)read_int();
-    if (type == 0) {
-      t.apply(l, r, F{0, -INF, read_int()});
-    } else if (type == 1) {
-      t.apply(l, r, F{0, read_int(), INF});
-    } else if (type == 2) {
-      t.apply(l, r, F{read_int(), -INF, INF});
-    } else {
-      put(t.prod(l, r).sum);
-    }
+    if (type == 0) t.apply(l, r, F{0, -INF, read_int()});
+    else if (type == 1) t.apply(l, r, F{0, read_int(), INF});
+    else if (type == 2) t.apply(l, r, F{read_int(), -INF, INF});
+    else put(t.prod(l, r).sum);
   }
   fwrite(out.data(), 1, out.size(), stdout);
   return 0;

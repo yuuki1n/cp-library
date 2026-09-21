@@ -75,9 +75,8 @@ inline bool is_prime(long long n_) {
   if (n_ <= prime_internal::SPF_MAX) return prime_internal::spf_table(n_)[std::size_t(n_ >> 1)] == n_;
 
   unsigned long long n = (unsigned long long)n_;
-  for (unsigned long long p : {3ULL, 5ULL, 7ULL, 11ULL, 13ULL, 17ULL, 19ULL, 23ULL, 29ULL, 31ULL, 37ULL}) {
+  for (unsigned long long p : {3ULL, 5ULL, 7ULL, 11ULL, 13ULL, 17ULL, 19ULL, 23ULL, 29ULL, 31ULL, 37ULL})
     if (n % p == 0) return n == p;
-  }
   unsigned long long d = n - 1;
   int s = 0;
   while (!(d & 1)) d >>= 1, s++;

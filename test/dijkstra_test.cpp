@@ -80,10 +80,8 @@ int main() {
           ll best = INF;
           for (auto& e : g[p[i]])
             if (e.to == p[i + 1]) best = min(best, e.w);
-          if (best == INF)
-            ok = false;
-          else
-            sum += best;
+          if (best == INF) ok = false;
+          else sum += best;
         }
         check(ok, "path が実在する辺でつながっている");
         check(sum == d.dist[t], "path の重みの合計が dist と一致");

@@ -62,11 +62,8 @@ int main() {
   while (q--) {
     long long type = read_uint();
     long long l = read_uint(), r = read_uint();
-    if (type == 0) {
-      t.reverse(l, r);
-    } else {
-      put(t.prod(l, r).sum);
-    }
+    if (type == 0) t.reverse(l, r);
+    else put(t.prod(l, r).sum);
   }
   fwrite(out.data(), 1, out.size(), stdout);
   return 0;

@@ -11,14 +11,10 @@ namespace dijkstra_internal {
 // W に入りきらない型（int など）では max() / 2 に落とす。
 constexpr long long LINF_ = 2002003004005006007LL;
 template <class W> constexpr W default_inf() {
-  if constexpr (std::is_integral_v<W>) {
-    if constexpr (std::numeric_limits<W>::max() / 2 >= LINF_)
-      return W(LINF_);
-    else
-      return std::numeric_limits<W>::max() / 2;
-  } else {
-    return W(LINF_);
-  }
+  if constexpr (std::is_integral_v<W>)
+    if constexpr (std::numeric_limits<W>::max() / 2 >= LINF_) return W(LINF_);
+    else return std::numeric_limits<W>::max() / 2;
+  else return W(LINF_);
 }
 }  // namespace dijkstra_internal
 

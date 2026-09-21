@@ -10,3 +10,7 @@ AlwaysBreakTemplateDeclarations: No
 # 1 行 80 桁だと、日本語コメントや長い修飾で折り返しが多くなる。
 # 140 桁まで許して行数を抑える。
 ColumnLimit: 140
+
+# else があっても短い if は 1 行に保つ。既定（WithoutElse）だと
+# if (a) g(); else h(); が 4 行に割られる。
+AllowShortIfStatementsOnASingleLine: AllIfsAndElse

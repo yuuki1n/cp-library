@@ -149,10 +149,8 @@ int main() {
       for (int q = 0; q < 40; q++) {
         int u = (int)(rng() % n), v = (int)(rng() % n);
         long long f;
-        if (nv.same(u, v) && rng() % 2)
-          f = pot[v] - pot[u];  // 正しい制約
-        else
-          f = (long long)(rng() % 200) - 100;  // でたらめ
+        if (nv.same(u, v) && rng() % 2) f = pot[v] - pot[u];  // 正しい制約
+        else f = (long long)(rng() % 200) - 100;              // でたらめ
         bool want = !nv.same(u, v) || pot[v] - pot[u] == f;
         check(uf.consistent(u, v, f) == want, "consistent");
         check(uf.merge(u, v, f) == want, "merge の戻り値（矛盾検出）");
@@ -201,13 +199,11 @@ int main() {
           while (!st.empty()) {
             int x = st.back();
             st.pop_back();
-            for (int y : g[x]) {
+            for (int y : g[x])
               if (col[y] < 0) {
                 col[y] = col[x] ^ 1;
                 st.push_back(y);
-              } else if (col[y] == col[x])
-                ok2 = false;
-            }
+              } else if (col[y] == col[x]) ok2 = false;
           }
         }
       check(ok == ok2, "二部グラフ判定");

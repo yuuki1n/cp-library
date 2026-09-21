@@ -109,12 +109,9 @@ struct avl_segtree {
 
   int alloc() {
     int i = (int)pool.size();
-    if (free_.empty()) {
-      pool.push_back(node{});
-    } else {
-      i = free_.back();
-      free_.pop_back();
-    }
+    if (free_.empty()) pool.push_back(node{});
+    else i = free_.back(), free_.pop_back();
+
     // val と laz は呼び出し側が入れ直すか、フラグが false の間は読まれない
     node& n = pool[i];
     n.lft = n.rht = -1;
@@ -338,8 +335,7 @@ struct avl_segtree {
 
   int build_(const std::vector<S>& v, int l, int r) {
     if (r - l == 1) return make(v[l]);
-    int m = (l + r) / 2;
-    int i = alloc();
+    int m = (l + r) / 2, i = alloc();
     int a = build_(v, l, m), b = build_(v, m, r);
     pool[i].lft = a;
     pool[i].rht = b;
@@ -349,9 +345,8 @@ struct avl_segtree {
   // k 番目の手前に「x が cnt 個」を挿し、戻りながら平衡を直す
   int insert_(int i, long long k, const S& x, long long cnt) {
     if (pool[i].lft < 0) {
-      if (0 < k && k < pool[i].sz) {
-        split_leaf(i, k);
-      } else {
+      if (0 < k && k < pool[i].sz) split_leaf(i, k);
+      else {
         int leaf = make(x, cnt), p = alloc();
         pool[p].lft = k == 0 ? leaf : i;
         pool[p].rht = k == 0 ? i : leaf;
@@ -377,8 +372,7 @@ struct avl_segtree {
     }
     push(i);
     long long ls = sz_(pool[i].lft);
-    int d = k < ls ? -1 : 1;
-    int t = erase_(child_(i, d), d < 0 ? k : k - ls);
+    int d = k < ls ? -1 : 1, t = erase_(child_(i, d), d < 0 ? k : k - ls);
     if (t < 0) {
       int sib = child_(i, -d);
       kill(i);
@@ -443,12 +437,9 @@ struct avl_segtree {
     push(i);
     long long ls = sz_(pool[i].lft);
     S x;
-    if (r <= ls)
-      x = prod_(pool[i].lft, l, r);
-    else if (ls <= l)
-      x = prod_(pool[i].rht, l - ls, r - ls);
-    else
-      x = op(prod_(pool[i].lft, l, ls), prod_(pool[i].rht, 0, r - ls));
+    if (r <= ls) x = prod_(pool[i].lft, l, r);
+    else if (ls <= l) x = prod_(pool[i].rht, l - ls, r - ls);
+    else x = op(prod_(pool[i].lft, l, ls), prod_(pool[i].rht, 0, r - ls));
     set_sz(x, r - l);
     return x;
   }

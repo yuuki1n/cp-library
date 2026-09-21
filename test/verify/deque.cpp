@@ -60,17 +60,11 @@ int main() {
 
   while (q--) {
     long long type = read_uint();
-    if (type == 0) {
-      t.insert(0, S{read_uint()});
-    } else if (type == 1) {
-      t.insert(t.size(), S{read_uint()});
-    } else if (type == 2) {
-      t.erase(0);
-    } else if (type == 3) {
-      t.erase(t.size() - 1);
-    } else {
-      put(t.get(read_uint()).v);
-    }
+    if (type == 0) t.insert(0, S{read_uint()});
+    else if (type == 1) t.insert(t.size(), S{read_uint()});
+    else if (type == 2) t.erase(0);
+    else if (type == 3) t.erase(t.size() - 1);
+    else put(t.get(read_uint()).v);
   }
   fwrite(out.data(), 1, out.size(), stdout);
   return 0;

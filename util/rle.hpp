@@ -22,12 +22,9 @@
 template <class C> auto rle(const C& v) {
   using T = std::remove_cvref_t<decltype(*std::begin(v))>;
   std::vector<std::pair<T, long long>> r;
-  for (const auto& x : v) {
-    if (!r.empty() && r.back().first == x)
-      r.back().second++;
-    else
-      r.emplace_back(x, 1);
-  }
+  for (const auto& x : v)
+    if (!r.empty() && r.back().first == x) r.back().second++;
+    else r.emplace_back(x, 1);
   return r;
 }
 

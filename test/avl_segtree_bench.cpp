@@ -9,8 +9,6 @@
 //
 // 各項目は「準備を時間に入れず、本体だけを 3 回測って最小値」を出す。
 // 実装を差し替えて比べるときは、同じ引数で両方を走らせて ns/op を並べる。
-#include "../data_structure/avl_segtree.hpp"
-
 #include <chrono>
 #include <climits>
 #include <cstdio>
@@ -19,6 +17,8 @@
 #include <random>
 #include <string>
 #include <vector>
+
+#include "../data_structure/avl_segtree.hpp"
 
 using ll = long long;
 using namespace std;
@@ -150,17 +150,21 @@ int main(int argc, char** argv) {
   printf("avl_segtree bench  N = %d, Q = %d\n", N, Q);
 
   printf("\n[構築]\n");
-  bench("avl_segtree(vector) N 要素", N, [] { return base_vec(); }, [](vector<S>& v) {
-    tree t(v);
-    sink += t.size();
-  });
+  bench(
+      "avl_segtree(vector) N 要素", N, [] { return base_vec(); },
+      [](vector<S>& v) {
+        tree t(v);
+        sink += t.size();
+      });
   // 葉 1 個で持つので O(1)。1 回では短すぎて測れないため 1000 回回す
-  bench("avl_segtree(n, x) N 要素 x1000", 1000, [] { return 0; }, [](int&) {
-    for (int i = 0; i < 1000; i++) {
-      tree t(N, mk(1));
-      sink += t.size();
-    }
-  });
+  bench(
+      "avl_segtree(n, x) N 要素 x1000", 1000, [] { return 0; },
+      [](int&) {
+        for (int i = 0; i < 1000; i++) {
+          tree t(N, mk(1));
+          sink += t.size();
+        }
+      });
   bench("to_vec() N 要素", N, fresh, [](tree& t) { sink += (ll)t.to_vec().size(); });
 
   printf("\n[読み出し]\n");
@@ -192,9 +196,11 @@ int main(int argc, char** argv) {
   });
 
   printf("\n[構造を変える]\n");
-  bench("insert(size(), x) 末尾に足す", Q, [] { return tree(); }, [](tree& t) {
-    for (int q = 0; q < Q; q++) t.insert(t.size(), mk(q));
-  });
+  bench(
+      "insert(size(), x) 末尾に足す", Q, [] { return tree(); },
+      [](tree& t) {
+        for (int q = 0; q < Q; q++) t.insert(t.size(), mk(q));
+      });
   bench("insert(i, x) ランダム位置", Q, fresh, [](tree& t) {
     for (int q = 0; q < Q; q++) t.insert((int)(rng_body() % (unsigned)t.size()), mk(q));
   });
@@ -202,16 +208,20 @@ int main(int argc, char** argv) {
   bench("insert(i, x, k) まとめて k=1000", Q, fresh, [](tree& t) {
     for (int q = 0; q < Q; q++) t.insert((int)(rng_body() % (unsigned)t.size()), mk(q), 1000);
   });
-  bench("erase(i) 1 点", Q, [] { return tree(vector<S>(N + Q, mk(1))); }, [](tree& t) {
-    for (int q = 0; q < Q; q++) t.erase((int)(rng_body() % (unsigned)t.size()));
-  });
+  bench(
+      "erase(i) 1 点", Q, [] { return tree(vector<S>(N + Q, mk(1))); },
+      [](tree& t) {
+        for (int q = 0; q < Q; q++) t.erase((int)(rng_body() % (unsigned)t.size()));
+      });
   // 1 回に 2 個消すので、Q 回ぶん余分に積んでおく（途中で空にしない）
-  bench("erase(l, r) ランダム区間", Q, [] { return tree(vector<S>(N + 2 * Q, mk(1))); }, [](tree& t) {
-    for (int q = 0; q < Q; q++) {
-      int l = (int)(rng_body() % (unsigned)(t.size() - 2));
-      t.erase(l, l + 2);
-    }
-  });
+  bench(
+      "erase(l, r) ランダム区間", Q, [] { return tree(vector<S>(N + 2 * Q, mk(1))); },
+      [](tree& t) {
+        for (int q = 0; q < Q; q++) {
+          int l = (int)(rng_body() % (unsigned)(t.size() - 2));
+          t.erase(l, l + 2);
+        }
+      });
   bench("reverse(l, r) ランダム区間", Q, fresh, [](tree& t) {
     for (int q = 0; q < Q; q++) {
       auto [l, r] = range(rng_body, N);
@@ -231,11 +241,8 @@ int main(int argc, char** argv) {
   bench("apply(l,r) と prod(l,r) を交互", Q, fresh, [](tree& t) {
     for (int q = 0; q < Q; q++) {
       auto [l, r] = range(rng_body, N);
-      if (q & 1) {
-        t.apply(l, r, 1);
-      } else {
-        sink += t.prod(l, r).sum;
-      }
+      if (q & 1) t.apply(l, r, 1);
+      else sink += t.prod(l, r).sum;
     }
   });
   bench("apply(l,r) と get(i) を交互", Q, fresh, [](tree& t) {
@@ -251,11 +258,8 @@ int main(int argc, char** argv) {
   bench("reverse と prod を交互", Q, fresh, [](tree& t) {
     for (int q = 0; q < Q; q++) {
       auto [l, r] = range(rng_body, N);
-      if (q & 1) {
-        t.reverse(l, r);
-      } else {
-        sink += t.prod(l, r).sum;
-      }
+      if (q & 1) t.reverse(l, r);
+      else sink += t.prod(l, r).sum;
     }
   });
   bench("insert と erase と prod を順に", Q, fresh, [](tree& t) {
