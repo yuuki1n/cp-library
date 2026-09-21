@@ -1,14 +1,13 @@
-// union_find / monoid_union_find / rollback_union_find / relational_union_find / dynamic_union_find
+// union_find / relational_union_find（どちらも巻き戻せる版つき）
+// / keyed_union_find
 // の検証
 #include <bits/stdc++.h>
 using namespace std;
 #include <atcoder/dsu>
 using namespace atcoder;
 
-#include "../graph/union_find/dynamic_union_find.hpp"
-#include "../graph/union_find/monoid_union_find.hpp"
+#include "../graph/union_find/keyed_union_find.hpp"
 #include "../graph/union_find/relational_union_find.hpp"
-#include "../graph/union_find/rollback_union_find.hpp"
 #include "../graph/union_find/union_find.hpp"
 
 int ng = 0;        // 今のブロックの NG 件数（report のたびに 0 に戻す）
@@ -77,45 +76,6 @@ struct Naive {
 int main() {
   mt19937 rng(20260905);
 
-  {  // ---- monoid_union_find ----
-    ng = 0;
-    for (int iter = 0; iter < 300; iter++) {
-      int n = 1 + (int)(rng() % 30);
-      vector<long long> a(n);
-      for (auto& x : a) x = (long long)(rng() % 1000) - 500;
-      monoid_union_find<long long> sum(a);
-      monoid_union_find<long long, op_max, e_min> mx(a);
-      Naive nv(n);
-      for (int q = 0; q < 60; q++) {
-        int u = (int)(rng() % n), v = (int)(rng() % n);
-        bool r = sum.merge(u, v);
-        check(r == mx.merge(u, v), "2 つの monoid_union_find の merge が一致");
-        check(r == nv.unite(u, v), "merge の戻り値");
-        int x = (int)(rng() % n);
-        long long s = 0, m = e_min();
-        for (int i : nv.group(x)) {
-          s += a[i];
-          m = max(m, a[i]);
-        }
-        check(sum.prod(x) == s, "prod（総和）");
-        check(mx.prod(x) == m, "prod（最大値）");
-      }
-      // apply: 成分ごとの辺の本数を数え、総和が辺の本数と一致するか
-      monoid_union_find<long long> cnt(n);
-      long long add = 0;
-      for (int q = 0; q < 40; q++) {
-        int u = (int)(rng() % n), v = (int)(rng() % n);
-        cnt.merge(u, v);
-        cnt.apply(u, 1);
-        add++;
-      }
-      long long tot = 0;
-      for (auto& g : cnt.groups()) tot += cnt.prod(g[0]);
-      check(tot == add, "apply の総和");
-    }
-    report("monoid_union_find");
-  }
-
   {  // ---- rollback_union_find ----
     ng = 0;
     for (int iter = 0; iter < 200; iter++) {
@@ -151,6 +111,68 @@ int main() {
         for (int y = 0; y < n; y++) check(uf.same(x, y) == nv.same(x, y), "rollback 後の same");
     }
     report("rollback_union_find");
+  }
+
+  {  // ---- union_find に値を載せる ----
+    ng = 0;
+    {  // 和。初期値つき
+      union_find<long long> uf(vector<long long>{1, 2, 3, 4});
+      uf.merge(0, 1);
+      check(uf.prod(0) == 3 && uf.prod(1) == 3, "merge で総和がまとまる");
+      uf.apply(0, 10);
+      check(uf.prod(1) == 13, "apply");
+      uf.merge(2, 3), uf.merge(0, 3);
+      check(uf.prod(2) == 20 && uf.group_count() == 1, "全部つなぐ");
+      uf.clear();
+      check(uf.prod(0) == 0 && uf.group_count() == 4, "clear で値も戻る");
+    }
+    {  // 巻き戻し x 逆元の無い演算。コールバックでは打ち消せない形
+      rollback_union_find<long long, op_max, e_min> uf(vector<long long>{5, 9, 2, 7});
+      int t = uf.snapshot();
+      uf.merge(0, 1);
+      check(uf.prod(0) == 9, "max がまとまる");
+      uf.merge(0, 2);
+      check(uf.prod(2) == 9, "さらにまとまる");
+      uf.rollback(t);
+      check(uf.prod(0) == 5 && uf.prod(1) == 9 && uf.prod(2) == 2, "max が巻き戻る");
+      check(uf.group_count() == 4, "成分数も戻る");
+    }
+    for (int it = 0; it < 300; it++) {  // 巻き戻し x max を素朴な実装と突き合わせる
+      int n = 1 + (int)(rng() % 8), Q = 20;
+      vector<long long> a(n);
+      for (auto& x : a) x = (long long)(rng() % 100);
+      rollback_union_find<long long, op_max, e_min> uf(a);
+      vector<Naive> snap{Naive(n)};
+      for (int q = 0; q < Q; q++) {
+        int u = (int)(rng() % n), v = (int)(rng() % n);
+        Naive cur = snap.back();
+        check(uf.merge(u, v) == cur.unite(u, v), "merge の戻り値");
+        snap.push_back(cur);
+      }
+      for (int k = Q; k >= 0; k--) {
+        uf.rollback(k);
+        Naive& want = snap[k];
+        check(uf.group_count() == want.count(), "rollback 後の成分数");
+        for (int x = 0; x < n; x++) {
+          long long m = e_min();
+          for (int i : want.group(x)) m = max(m, a[i]);
+          check(uf.prod(x) == m, "rollback 後の prod");
+        }
+      }
+    }
+    {  // 値とコールバックは併用できる
+      union_find<long long> uf(vector<long long>(5, 1));
+      int hit = 0;
+      uf.merge(0, 1, [&](int, int) { hit++; });
+      check(hit == 1 && uf.prod(0) == 2, "値とコールバックの併用");
+    }
+    {  // keyed をかぶせる（キー x 値）
+      keyed_union_find<string, union_find<long long>> uf;
+      uf.apply("a", 5), uf.apply("b", 7);
+      uf.merge("a", "b");
+      check(uf.prod("a") == 12 && uf.group_count() == 1, "キー x 値");
+    }
+    report("union_find（値つき）");
   }
 
   {  // ---- relational_union_find（差の制約）----
@@ -305,13 +327,13 @@ int main() {
     report("merge / undo のコールバック");
   }
 
-  {  // ---- dynamic_union_find ----
+  {  // ---- keyed_union_find x 素朴な実装（キーを遅れて足す） ----
     ng = 0;
     for (int iter = 0; iter < 200; iter++) {
       int n = 1 + (int)(rng() % 20);
       vector<long long> key(n);  // 10^12 級のキー
       for (int i = 0; i < n; i++) key[i] = 1000000000000LL + i * 7;
-      dynamic_union_find<long long> uf;
+      keyed_union_find<long long, union_find<>> uf;
       Naive nv(n);
       set<int> added;
       for (int q = 0; q < 60; q++) {
@@ -340,14 +362,14 @@ int main() {
         }
       }
     }
-    dynamic_union_find<pair<int, int>> p;
+    keyed_union_find<pair<int, int>, union_find<>> p;
     check(p.add({0, 0}) == true, "add 初回");
     check(p.add({0, 0}) == false, "add 2 回目");
     p.merge({0, 0}, {0, 1});
     p.merge({5, 5}, {0, 0});
     check(p.vertex_count() == 3 && p.group_count() == 1 && p.size({0, 1}) == 3, "pair キー");
     check(p.group({5, 5}).size() == 3, "pair キーの group");
-    report("dynamic_union_find");
+    report("keyed_union_find（キーの総当たり）");
   }
 
   {  // ---- clear / ガード ----
@@ -379,49 +401,191 @@ int main() {
       check(uf.merge(0, 1, 6), "clear 後は同じ制約が通る");
       check(uf.diff(0, 1) == 6, "clear 後の diff");
     }
-    // monoid_union_find: clear で値ごと入れ直す
+    // keyed_union_find: clear でキーごと消える
     {
-      monoid_union_find<long long> uf(vector<long long>{1, 2, 3, 4});
-      uf.merge(0, 1);
-      check(uf.prod(0) == 3, "merge 後の prod");
-      uf.clear(vector<long long>{10, 20, 30, 40});
-      check(!uf.same(0, 1) && uf.prod(0) == 10, "monoid_union_find::clear(v)");
-      uf.clear();
-      check(uf.prod(3) == 0 && uf.groups().size() == 4, "monoid_union_find::clear()");
-    }
-    // dynamic_union_find: clear で頂点ごと消える
-    {
-      dynamic_union_find<long long> uf;
+      keyed_union_find<long long, union_find<>> uf;
       uf.merge(100, 200);
       check(uf.vertex_count() == 2 && uf.group_count() == 1, "merge 後");
       uf.clear();
-      check(uf.vertex_count() == 0 && uf.group_count() == 0, "dynamic_union_find::clear");
+      check(uf.vertex_count() == 0 && uf.group_count() == 0, "keyed_union_find::clear");
       uf.add(100);
       check(uf.vertex_count() == 1 && !uf.same(100, 200), "clear 後に足し直せる");
     }
     // デフォルトコンストラクタ
     {
-      monoid_union_find<long long> a;
       relational_union_find<> b;
       rollback_union_find c;
-      dynamic_union_find<long long> d;
-      check(a.groups().empty() && b.group_count() == 0 && c.group_count() == 0 && d.vertex_count() == 0, "デフォルトコンストラクタ");
-      a = monoid_union_find<long long>(vector<long long>(3, 1));
-      check(a.prod(0) == 1, "代入で入れ直せる");
+      keyed_union_find<long long, union_find<>> d;
+      check(b.group_count() == 0 && c.group_count() == 0 && d.vertex_count() == 0, "デフォルトコンストラクタ");
     }
     report("clear / ガード");
   }
 
-  {  // ---- group(): 5 種すべてを素朴な実装と突き合わせる ----
+  {  // ---- keyed_union_find ----
+    ng = 0;
+    {  // union_find に pair のキーをかぶせる
+      keyed_union_find<pair<int, int>, union_find<>> uf;
+      check(uf.merge({0, 0}, {0, 1}) && !uf.merge({0, 1}, {0, 0}), "merge の戻り値");
+      uf.merge({5, 5}, {0, 0});
+      check(uf.same({5, 5}, {0, 1}) && !uf.same({5, 5}, {9, 9}), "same");
+      check(uf.size({0, 0}) == 3 && uf.vertex_count() == 4, "size / vertex_count");
+      check(uf.group_count() == 2 && uf.groups().size() == 2, "group_count / groups");
+      check(uf.group({0, 1}).size() == 3, "group");
+      check(uf.leader({0, 0}) == uf.leader({5, 5}), "leader はキーで返る");
+      uf.clear();
+      check(uf.vertex_count() == 0 && uf.group_count() == 0 && uf.groups().empty(), "clear");
+      check(uf.add({7, 7}) && !uf.add({7, 7}), "add");
+    }
+    {  // rollback をかぶせる。巻き戻るのは併合だけ
+      keyed_union_find<pair<int, int>, rollback_union_find<>> uf;
+      uf.merge({0, 0}, {0, 1});
+      int t = uf.snapshot();
+      uf.merge({0, 1}, {2, 2});
+      check(uf.same({0, 0}, {2, 2}) && uf.size({0, 0}) == 3, "rollback 前");
+      uf.rollback(t);
+      check(!uf.same({0, 0}, {2, 2}) && uf.size({0, 0}) == 2, "rollback 後");
+      check(uf.vertex_count() == 3, "キーの登録は巻き戻らない");
+
+      vector<long long> sum(8, 1);
+      keyed_union_find<long long, rollback_union_find<>> vu;
+      vu.merge(1LL << 40, 1LL << 41, [&](int to, int from) { sum[to] += sum[from]; });
+      check(sum[vu.uf.leader(vu.id(1LL << 40))] == 2, "コールバックは添字で来る");
+      vu.undo([&](int to, int from) { sum[to] -= sum[from]; });
+      check(sum[vu.id(1LL << 40)] == 1 && sum[vu.id(1LL << 41)] == 1, "undo のコールバック");
+    }
+    {  // relational をかぶせる
+      keyed_union_find<string, relational_union_find<>> uf;
+      check(uf.merge("a", "b", 3) && uf.merge("b", "c", 4), "merge に重みを渡せる");
+      check(uf.diff("a", "c") == 7, "diff");
+      check(!uf.merge("a", "c", 8) && uf.consistent("a", "c", 7), "矛盾の検出");
+      int hit = 0;
+      uf.merge("x", "y", 1, [&](int, int) { hit++; });
+      check(hit == 1 && uf.group_count() == 2, "重み + コールバック");
+    }
+    {  // Map を差し替える
+      keyed_union_find<long long, union_find<>, unordered_map<long long, int>> uf;
+      uf.merge(1LL << 40, 1LL << 41);
+      check(uf.same(1LL << 40, 1LL << 41) && uf.leader(1LL << 40) == (1LL << 40), "unordered_map");
+    }
+    for (int it = 0; it < 300; it++) {  // 総当たりとの突き合わせ
+      int n = 8;
+      keyed_union_find<pair<int, int>, union_find<>> uf;
+      Naive nv(n);
+      for (int q = 0; q < 20; q++) {
+        int a = (int)(rng() % n), b = (int)(rng() % n);
+        pair<int, int> ka{a / 3, a % 3}, kb{b / 3, b % 3};
+        int ia = uf.id(ka), ib = uf.id(kb);
+        check(uf.merge(ka, kb) == nv.unite(ia, ib), "merge の戻り値");
+        check(uf.same(ka, kb) && (int)uf.group(ka).size() == uf.size(ka), "same / group / size");
+      }
+      int comps = 0;
+      size_t tot = 0;
+      for (int i = 0; i < uf.vertex_count(); i++) comps += (nv.root(i) == i);
+      for (auto& g : uf.groups()) tot += g.size();
+      check(uf.group_count() == comps && (int)uf.groups().size() == comps, "group_count");
+      check((int)tot == uf.vertex_count(), "groups がキーを漏らさない");
+    }
+    report("keyed_union_find");
+  }
+
+  {  // ---- rollback_relational_union_find ----
+    ng = 0;
+    using RR = rollback_relational_union_find<>;
+    for (int it = 0; it < 300; it++) {  // 巻き戻さない限り relational_union_find と一致する
+      int n = 1 + (int)(rng() % 12);
+      RR rr(n);
+      relational_union_find<> rl(n);
+      for (int q = 0; q < 40; q++) {
+        int u = (int)(rng() % n), v = (int)(rng() % n);
+        long long w = (long long)(rng() % 21) - 10;
+        check(rr.consistent(u, v, w) == rl.consistent(u, v, w), "consistent が一致");
+        check(rr.merge(u, v, w) == rl.merge(u, v, w), "merge の戻り値が一致");
+        int a = (int)(rng() % n), b = (int)(rng() % n);
+        check(rr.same(a, b) == rl.same(a, b), "same が一致");
+        if (rr.same(a, b)) check(rr.diff(a, b) == rl.diff(a, b), "diff が一致");
+        check(rr.size(a) == rl.size(a) && rr.group_count() == rl.group_count(), "size / group_count が一致");
+        vector<int> ga = rr.group(a), gb = rl.group(a);
+        sort(ga.begin(), ga.end()), sort(gb.begin(), gb.end());
+        check(ga == gb, "group が一致");
+      }
+    }
+    for (int it = 0; it < 200; it++) {  // どの時点へ戻しても、その時点の状態と一致する
+      int n = 1 + (int)(rng() % 10), Q = 30;
+      RR rr(n);
+      vector<relational_union_find<>> snap{relational_union_find<>(n)};  // 各時刻を丸ごと保存
+      for (int q = 0; q < Q; q++) {
+        int u = (int)(rng() % n), v = (int)(rng() % n);
+        long long w = (long long)(rng() % 11) - 5;
+        auto cur = snap.back();
+        check(rr.merge(u, v, w) == cur.merge(u, v, w), "merge の戻り値");
+        snap.push_back(cur);
+      }
+      for (int k = Q; k >= 0; k--) {
+        rr.rollback(k);
+        auto& want = snap[k];
+        for (int x = 0; x < n; x++)
+          for (int y = 0; y < n; y++) {
+            check(rr.same(x, y) == want.same(x, y), "rollback 後の same");
+            if (rr.same(x, y)) check(rr.diff(x, y) == want.diff(x, y), "rollback 後の diff");
+          }
+        check(rr.group_count() == want.group_count(), "rollback 後の group_count");
+      }
+      check(rr.snapshot() == 0, "全部戻すと履歴が空になる");
+    }
+    {  // 非可換な群（3 次対称群）でも合成順が合っているか
+      for (int it = 0; it < 200; it++) {
+        int n = 1 + (int)(rng() % 8);
+        rollback_relational_union_find<P, op_perm, e_perm, inv_perm> rr(n);
+        relational_union_find<P, op_perm, e_perm, inv_perm> rl(n);
+        for (int q = 0; q < 25; q++) {
+          int u = (int)(rng() % n), v = (int)(rng() % n);
+          P w = e_perm();
+          swap(w[rng() % 3], w[rng() % 3]);
+          check(rr.merge(u, v, w) == rl.merge(u, v, w), "非可換 merge の戻り値");
+          int a = (int)(rng() % n), b = (int)(rng() % n);
+          if (rr.same(a, b)) check(rr.diff(a, b) == rl.diff(a, b), "非可換 diff");
+        }
+      }
+    }
+    {  // コールバックと pot / clear
+      RR uf(6);
+      int hit = 0;
+      uf.merge(0, 1, 5, [&](int, int) { hit++; });
+      uf.merge(0, 1, 5, [&](int, int) { hit++; });  // 併合しないので呼ばれない
+      check(hit == 1, "merge コールバックは併合したときだけ");
+      uf.undo([&](int, int) { hit--; });
+      check(hit == 1, "併合しなかった undo では呼ばれない");
+      uf.undo([&](int, int) { hit--; });
+      check(hit == 0 && !uf.same(0, 1), "undo コールバック");
+      uf.merge(0, 1, 5);
+      check(uf.pot(0) == 0 || uf.pot(1) == 0, "根の pot は単位元");
+      check(uf.diff(0, 1) == 5, "diff");
+      uf.clear();
+      check(!uf.same(0, 1) && uf.group_count() == 6 && uf.snapshot() == 0, "clear");
+      check(uf.merge(0, 1, 7) && uf.diff(0, 1) == 7, "clear 後に入れ直せる");
+    }
+    {  // keyed をかぶせる（キー x 巻き戻し x ポテンシャル）
+      keyed_union_find<string, RR> uf;
+      check(uf.merge("a", "b", 3) && uf.merge("b", "c", 4), "キーで merge");
+      check(uf.diff("a", "c") == 7, "キーで diff");
+      int t = uf.snapshot();
+      uf.merge("c", "d", 5);
+      check(uf.same("a", "d") && uf.diff("a", "d") == 12, "rollback 前");
+      uf.rollback(t);
+      check(!uf.same("a", "d") && uf.diff("a", "c") == 7, "rollback 後");
+    }
+    report("rollback_relational_union_find");
+  }
+
+  {  // ---- group(): 4 種すべてを素朴な実装と突き合わせる ----
     ng = 0;
     for (int it = 0; it < 300; it++) {
       int n = 1 + (int)(rng() % 12);
       Naive nv(n);
       union_find gd(n);
-      monoid_union_find<long long> md(vector<long long>(n, 1));
       relational_union_find<> rd(n);
       rollback_union_find rb(n);
-      dynamic_union_find<long long> dd;
+      keyed_union_find<long long, union_find<>> dd;
       for (int i = 0; i < n; i++) dd.add(i);
 
       int m = (int)(rng() % (2 * n + 1));
@@ -429,9 +593,8 @@ int main() {
         int a = (int)(rng() % n), b = (int)(rng() % n);
         bool want = nv.unite(a, b);
         check(gd.merge(a, b) == want, "union_find merge の返り値");
-        check(md.merge(a, b) == want, "monoid_union_find merge の返り値");
         check(rb.merge(a, b) == want, "rollback_union_find merge の返り値");
-        check(dd.merge(a, b) == want, "dynamic_union_find merge の返り値");
+        check(dd.merge(a, b) == want, "keyed_union_find merge の返り値");
         // relational は矛盾しない制約だけ入れる（同じ成分なら同じ差を入れ直す）
         long long f = rd.same(a, b) ? rd.diff(a, b) : (long long)(rng() % 100);
         rd.merge(a, b, f);
@@ -445,20 +608,18 @@ int main() {
           return v;
         };
         check(sorted_of(gd.group(x)) == want, "union_find group");
-        check(sorted_of(md.group(x)) == want, "monoid_union_find group");
         check(sorted_of(rd.group(x)) == want, "relational_union_find group");
         check(sorted_of(rb.group(x)) == want, "rollback_union_find group");
 
         vector<long long> gk = dd.group(x);
         vector<int> gi(gk.begin(), gk.end());
-        check(sorted_of(gi) == want, "dynamic_union_find group");
+        check(sorted_of(gi) == want, "keyed_union_find group");
 
         // 自分自身を必ず含み、大きさは size() と一致する
         check((int)want.size() == gd.size(x), "union_find size");
-        check((int)want.size() == md.size(x), "monoid_union_find size");
         check((int)want.size() == rd.size(x), "relational_union_find size");
         check((int)want.size() == rb.size(x), "rollback_union_find size");
-        check((int)want.size() == dd.size(x), "dynamic_union_find size");
+        check((int)want.size() == dd.size(x), "keyed_union_find size");
         check(find(want.begin(), want.end(), x) != want.end(), "自分を含む");
       }
 
@@ -474,15 +635,14 @@ int main() {
           return v;
         };
         check(norm(gd.groups()) == want, "union_find groups");
-        check(norm(md.groups()) == want, "monoid_union_find groups");
         check(norm(rd.groups()) == want, "relational_union_find groups");
         check(norm(rb.groups()) == want, "rollback_union_find groups");
 
         vector<vector<int>> di;
         for (auto& g : dd.groups()) di.emplace_back(g.begin(), g.end());
-        check(norm(di) == want, "dynamic_union_find groups");
+        check(norm(di) == want, "keyed_union_find groups");
 
-        // 各成分の中が昇順になっているか（dynamic_union_find は add 順なので除く）
+        // 各成分の中が昇順になっているか（keyed_union_find は add 順なので除く）
         auto asc = [](const vector<vector<int>>& v) {
           for (auto& g : v)
             if (!is_sorted(g.begin(), g.end())) return false;
@@ -495,12 +655,11 @@ int main() {
 
       int c = nv.count();
       check(gd.group_count() == c, "union_find group_count");
-      check(md.group_count() == c, "monoid_union_find group_count");
       check(rd.group_count() == c, "relational_union_find group_count");
       check(rb.group_count() == c, "rollback_union_find group_count");
-      check(dd.group_count() == c, "dynamic_union_find group_count");
+      check(dd.group_count() == c, "keyed_union_find group_count");
     }
-    report("group / groups 5 種 x 素朴な実装");
+    report("group / groups 4 種 x 素朴な実装");
   }
 
   {  // ---- union_find: groups() と clear、undo 後の環 ----
@@ -589,10 +748,6 @@ int main() {
       union_find uf(N);
       for (int i = 0; i < Q; i++) uf.merge(a[i], b[i]);
     });
-    bench("速度 monoid_union_find merge x4e5", [&] {
-      monoid_union_find<long long> uf(vector<long long>(N, 1));
-      for (int i = 0; i < Q; i++) uf.merge(a[i], b[i]);
-    });
     bench("速度 rollback_union_find merge x4e5", [&] {
       rollback_union_find uf(N);
       for (int i = 0; i < Q; i++) uf.merge(a[i], b[i]);
@@ -601,8 +756,8 @@ int main() {
       relational_union_find<> uf(N);
       for (int i = 0; i < Q; i++) uf.merge(a[i], b[i], i);
     });
-    bench("速度 dynamic_union_find merge x4e5", [&] {
-      dynamic_union_find<long long> uf;
+    bench("速度 keyed_union_find merge x4e5", [&] {
+      keyed_union_find<long long, union_find<>> uf;
       for (int i = 0; i < Q; i++) uf.merge(a[i], b[i]);
     });
     {  // group() が成分の大きさぶんで済むか（全部つないでから 1 点ずつ引く）

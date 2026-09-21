@@ -14,8 +14,8 @@ Java 版の資産を C++ に移し替えていく。このファイルはコミ�
 移植の進み具合と verify の進み具合は別物なので、それぞれ分けて数えている。
 ジャッジを通したかどうかは [VERIFY.md](VERIFY.md) を参照。
 
-- **移植済み** 18 / 77（うち verify 済み **3**）
-- **移植不要** 29 / 77（ACL 16・標準ライブラリ 10・対象外 3）
+- **移植済み** 17 / 77（うち verify 済み **3**）
+- **移植不要** 30 / 77（ACL 16・標準ライブラリ 10・対象外 4）
 - **残り** 30 / 77（高 6・中 16・低 8）
 
 ---
@@ -28,11 +28,11 @@ Java 版の資産を C++ に移し替えていく。このファイルはコミ�
 | `dataStructure/rectangleData/Sum2D` | `data_structure/cumsum2d.hpp` | 未 | |
 | `dataStructure/rangeData/RangeSet` | `data_structure/interval_set.hpp` | 未 | 名前を `IntervalSet` に変更 |
 | `math/Prime` | `math/prime.hpp` | 未 | SPF 篩 + Pollard's rho |
-| `graph/unionfind/UnionFind` | `graph/union_find/union_find.hpp` | 未 | `getGroup` にあたる `group(x)` を持つ。ACL の `dsu` には無い |
-| `graph/unionfind/MonoidUnionFind` | `graph/union_find/monoid_union_find.hpp` | 未 | |
-| `graph/unionfind/RelationalUnionFind` | `graph/union_find/relational_union_find.hpp` | 未 | |
-| `graph/unionfind/RollbackUnionFind` | `graph/union_find/rollback_union_find.hpp` | 未 | |
-| `graph/unionfind/DynamicUnionFind` | `graph/union_find/dynamic_union_find.hpp` | 未 | |
+| `graph/unionfind/UnionFind` | `graph/union_find/union_find.hpp` | **済** | `getGroup` にあたる `group(x)` を持つ。ACL の `dsu` には無い |
+| `graph/unionfind/RollbackUnionFind` | 同上（`rollback_union_find` の別名） | **済** | 巻き戻しをテンプレート引数で切り替える |
+| `graph/unionfind/MonoidUnionFind` | 同上（`union_find<S, op, e>`） | 未 | 値の有無もテンプレート引数。旧版と違い巻き戻せる |
+| `graph/unionfind/RelationalUnionFind` | `graph/union_find/relational_union_find.hpp` | **済** | 巻き戻す版は `rollback_relational_union_find`（同ファイルの別名） |
+| （新規） | `graph/union_find/keyed_union_find.hpp` | 未 | Java 版に対応なし。任意の Union-Find をキーで引けるようにする |
 | `graph/Edge` `graph/Graph` | `graph/graph.hpp` | 未 | 隣接リスト。2 ファイルを 1 つにまとめた |
 | `graph/Dijkstra` | `graph/dijkstra.hpp` | 未 | `graph.hpp` と組で使う |
 | `dataStructure/Trie` | `string/trie.hpp` | 未 | 文字列のトライ。接頭辞の本数を数える |
@@ -88,6 +88,7 @@ Java に無い追加分（未 verify）:
 | Java | 理由 |
 |---|---|
 | `graph/unionfind/PersistentUnionFind` | 移植しない方針 |
+| `graph/unionfind/DynamicUnionFind` | 一度移植したが削除。`keyed_union_find<K, union_find<>>` が同じもの |
 | `dataStructure/rangeData/base/BaseV` | Java の抽象クラス基盤。C++ ではテンプレート引数で済む |
 | `dataStructure/.../AVLSegmentTreeLong` | `AVLSegmentTree` の long 特殊化。C++ ではテンプレートで型を切り替えられる |
 

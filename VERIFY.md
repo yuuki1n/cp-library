@@ -3,7 +3,7 @@
 `test/verify/` のコードをジャッジに通した記録。移植そのものの進み具合は
 [PORTING.md](PORTING.md) を参照。
 
-**3 / 18 が verify 済み。** `test/` のテストは総当たりとの突き合わせなので、
+**3 / 16 が verify 済み。** `test/` のテストは総当たりとの突き合わせなので、
 実装の正しさはある程度見ているが、公開ジャッジを通したものはまだ少ない。
 
 | ライブラリ | 状態 | verify 先 |
@@ -15,11 +15,9 @@
 | `inversion_count` | 未 | 未定。[static_range_inversions_query](https://judge.yosupo.jp/problem/static_range_inversions_query) は Mo's algorithm 前提で、配列全体の転倒数だけでは通らない |
 | `rle` | 未 | 未定。Library Checker に該当する問題は無い |
 | `avl_segtree` | **済** | [dynamic_sequence_range_affine_range_sum](https://judge.yosupo.jp/problem/dynamic_sequence_range_affine_range_sum) / [range_chmin_chmax_add_range_sum](https://judge.yosupo.jp/problem/range_chmin_chmax_add_range_sum)（Beats） / [range_affine_range_sum_large_array](https://judge.yosupo.jp/problem/range_affine_range_sum_large_array)（N ≤ 10^9） / [point_set_range_composite](https://judge.yosupo.jp/problem/point_set_range_composite)（非可換な op） / [range_reverse_range_sum](https://judge.yosupo.jp/problem/range_reverse_range_sum)（区間反転） / [range_affine_point_get](https://judge.yosupo.jp/problem/range_affine_point_get)（get） / [deque](https://judge.yosupo.jp/problem/deque)（両端の挿入削除） |
-| `union_find` | 未 | 未定 |
-| `monoid_union_find` | 未 | 未定。非推奨なので verify する予定は無い |
-| `relational_union_find` | **済** | [非可換版](https://judge.yosupo.jp/problem/unionfind_with_potential_non_commutative_group)。可換版の [unionfind_with_potential](https://judge.yosupo.jp/problem/unionfind_with_potential) は未 |
-| `rollback_union_find` | **済** | [dynamic_graph_vertex_add_component_sum](https://judge.yosupo.jp/problem/dynamic_graph_vertex_add_component_sum)（Offline Dynamic Connectivity） |
-| `dynamic_union_find` | 未 | 未定 |
+| `union_find` | **済** | [unionfind](https://judge.yosupo.jp/problem/unionfind) / `Undoable = true`（`rollback_union_find`）は [dynamic_graph_vertex_add_component_sum](https://judge.yosupo.jp/problem/dynamic_graph_vertex_add_component_sum)（Offline Dynamic Connectivity）。値つき（`union_find<S, op, e>`）は `test/` の総当たりのみ |
+| `relational_union_find` | **済** | [unionfind_with_potential](https://judge.yosupo.jp/problem/unionfind_with_potential) / [非可換版](https://judge.yosupo.jp/problem/unionfind_with_potential_non_commutative_group)。`Undoable = true`（`rollback_relational_union_find`）は `test/` の総当たりのみ |
+| `keyed_union_find` | 未 | 未定。`test/union_find_test.cpp` で 4 通り（巻き戻しの有無 × ポテンシャルの有無）すべてにかぶせて総当たりと突き合わせている |
 | `trie` | 未 | 未定。[aho_corasick](https://judge.yosupo.jp/problem/aho_corasick) は別物（AC 自動機） |
 | `binary_trie` | 未 | [set_xor_min](https://judge.yosupo.jp/problem/set_xor_min) |
 | `matrix` | 未 | [matrix_product](https://judge.yosupo.jp/problem/matrix_product) / [pow_of_matrix](https://judge.yosupo.jp/problem/pow_of_matrix) / [matrix_det](https://judge.yosupo.jp/problem/matrix_det) / [matrix_rank](https://judge.yosupo.jp/problem/matrix_rank) / [inverse_matrix](https://judge.yosupo.jp/problem/inverse_matrix) / [system_of_linear_equations](https://judge.yosupo.jp/problem/system_of_linear_equations) |
