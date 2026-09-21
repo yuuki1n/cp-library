@@ -29,6 +29,20 @@ int op_xor(int a, int b) { return a ^ b; }
 int e_zero() { return 0; }
 int inv_id(int a) { return a; }
 
+// 3 次対称群。非可換なので、合成順を間違えると落ちる
+using P = array<int, 3>;
+P op_perm(P a, P b) {  // a を通してから b
+  P c;
+  for (int i = 0; i < 3; i++) c[i] = b[a[i]];
+  return c;
+}
+P e_perm() { return P{0, 1, 2}; }
+P inv_perm(P a) {
+  P c;
+  for (int i = 0; i < 3; i++) c[a[i]] = i;
+  return c;
+}
+
 // 素朴な参照実装
 struct Naive {
   vector<int> p;
@@ -209,6 +223,37 @@ int main() {
       check(ok == ok2, "二部グラフ判定");
     }
     report("relational_union_find（xor）");
+  }
+
+  {  // ---- relational_union_find（非可換な群 / 3 次対称群）----
+    ng = 0;
+    P all[6] = {{0, 1, 2}, {0, 2, 1}, {1, 0, 2}, {1, 2, 0}, {2, 0, 1}, {2, 1, 0}};
+    for (int iter = 0; iter < 400; iter++) {
+      int n = 1 + (int)(rng() % 10);
+      relational_union_find<P, op_perm, e_perm, inv_perm> uf(n);
+      Naive nv(n);
+      vector<P> pot(n, e_perm());  // 成分内での相対値（参照実装）
+      for (int q = 0; q < 40; q++) {
+        int u = (int)(rng() % n), v = (int)(rng() % n);
+        P want_f = op_perm(inv_perm(pot[u]), pot[v]);
+        P f = nv.same(u, v) && rng() % 2 ? want_f : all[rng() % 6];
+        bool want = !nv.same(u, v) || want_f == f;
+        check(uf.consistent(u, v, f) == want, "非可換 consistent");
+        check(uf.merge(u, v, f) == want, "非可換 merge の戻り値");
+        if (want && !nv.same(u, v)) {
+          // v 側の基準を u 側へ合わせる。左から掛けても成分内の diff は変わらない
+          P shift = op_perm(op_perm(pot[u], f), inv_perm(pot[v]));
+          for (int i : nv.group(v)) pot[i] = op_perm(shift, pot[i]);
+          nv.unite(u, v);
+        }
+        for (int x = 0; x < n; x++)
+          for (int y = 0; y < n; y++) {
+            check(uf.same(x, y) == nv.same(x, y), "非可換 same");
+            if (nv.same(x, y)) check(uf.diff(x, y) == op_perm(inv_perm(pot[x]), pot[y]), "非可換 diff");
+          }
+      }
+    }
+    report("relational_union_find（非可換 / 3 次対称群）");
   }
 
   {  // ---- dynamic_union_find ----
