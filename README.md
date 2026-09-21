@@ -72,6 +72,9 @@ python tools/clear_paste.py --dry-run path/to/main.cpp
 VS Code では `.vscode/tasks.json` の `clear lib`（`ctrl+alt+f11`）から呼べる。
 何度実行しても結果は同じ。
 
+区切り行の次の 1 行が `//` コメントなら残す。このリポジトリの URL を控えてある行を
+消さないため。残すのはその 1 行だけで、2 行目からは貼り付けたものとして消す。
+
 ## 実装の約束ごと
 
 - **ヘッダオンリー**。`.hpp` 1 ファイルで完結させる
