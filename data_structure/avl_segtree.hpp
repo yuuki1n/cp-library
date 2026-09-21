@@ -71,6 +71,9 @@ struct avl_value {
  * verify:
  *   https://judge.yosupo.jp/problem/dynamic_sequence_range_affine_range_sum
  *   https://judge.yosupo.jp/problem/range_chmin_chmax_add_range_sum
+ *   https://judge.yosupo.jp/problem/range_affine_range_sum_large_array
+ *   https://judge.yosupo.jp/problem/point_set_range_composite
+ *   https://judge.yosupo.jp/problem/range_reverse_range_sum
  */
 template <class S, S (*op)(S, S), S (*e)(), class F = avl_segtree_internal::no_lazy, S (*mapping)(F, S) = avl_segtree_internal::map_<S>,
           F (*composition)(F, F) = avl_segtree_internal::comp_, F (*id)() = avl_segtree_internal::id_,
