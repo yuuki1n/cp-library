@@ -25,6 +25,9 @@ SKIP_DIRS = {'test', '.git', '.github', 'tools'}
 # 単体では足りないヘッダの依存。値のヘッダを先に貼る（順序も依存順）
 DEPS = {
     'dijkstra': ['graph'],
+    # keyed_union_find は中身の Union-Find が要る。いちばん多い組み合わせを既定にする。
+    # relational_union_find にかぶせるなら、そちらを追加で貼る（ガードがあるので重ねて安全）
+    'keyed_union_find': ['union_find'],
 }
 
 
@@ -135,7 +138,14 @@ def main():
                 part = strip_doc(part)
             if body:
                 body.append('')
+            # 同じライブラリを 2 回貼っても壊れないようにする。
+            # graph に依存するスニペットを 2 つ貼る場合など、重複は普通に起きる。
+            # #pragma once は main.cpp に貼ると警告が出るので使わない
+            guard = 'CP_' + name.upper()
+            body.append('#ifndef ' + guard)
+            body.append('#define ' + guard)
             body.extend(escape(x) for x in part.splitlines())
+            body.append('#endif  // ' + guard)
         body.append('$0')
 
         snippets[stem] = {
