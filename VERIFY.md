@@ -3,7 +3,7 @@
 `test/verify/` のコードをジャッジに通した記録。移植そのものの進み具合は
 [PORTING.md](PORTING.md) を参照。
 
-**3 / 16 が verify 済み。** `test/` のテストは総当たりとの突き合わせなので、
+**4 / 17 が verify 済み。** `test/` のテストは総当たりとの突き合わせなので、
 実装の正しさはある程度見ているが、公開ジャッジを通したものはまだ少ない。
 
 | ライブラリ | 状態 | verify 先 |
@@ -23,6 +23,7 @@
 | `matrix` | 未 | [matrix_product](https://judge.yosupo.jp/problem/matrix_product) / [pow_of_matrix](https://judge.yosupo.jp/problem/pow_of_matrix) / [matrix_det](https://judge.yosupo.jp/problem/matrix_det) / [matrix_rank](https://judge.yosupo.jp/problem/matrix_rank) / [inverse_matrix](https://judge.yosupo.jp/problem/inverse_matrix) / [system_of_linear_equations](https://judge.yosupo.jp/problem/system_of_linear_equations) |
 | `maxplus_matrix` | 未 | 未定 |
 | `graph` | 未 | `dijkstra` と一緒に検証される |
+| `hld` | **済** | [vertex_set_path_composite](https://judge.yosupo.jp/problem/vertex_set_path_composite)（非可換な合成）。[lca](https://judge.yosupo.jp/problem/lca) / [vertex_add_path_sum](https://judge.yosupo.jp/problem/vertex_add_path_sum) / [vertex_add_subtree_sum](https://judge.yosupo.jp/problem/vertex_add_subtree_sum) / [jump_on_tree](https://judge.yosupo.jp/problem/jump_on_tree) は未 |
 | `dijkstra` | 未 | [shortest_path](https://judge.yosupo.jp/problem/shortest_path) |
 
 verify を通したら、この表の状態を「済」にしてリンクを残す。記録はここだけにまとめる

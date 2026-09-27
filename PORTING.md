@@ -14,9 +14,9 @@ Java 版の資産を C++ に移し替えていく。このファイルはコミ�
 移植の進み具合と verify の進み具合は別物なので、それぞれ分けて数えている。
 ジャッジを通したかどうかは [VERIFY.md](VERIFY.md) を参照。
 
-- **移植済み** 17 / 77（うち verify 済み **3**）
+- **移植済み** 18 / 77（うち verify 済み **4**）
 - **移植不要** 30 / 77（ACL 16・標準ライブラリ 10・対象外 4）
-- **残り** 30 / 77（高 6・中 16・低 8）
+- **残り** 29 / 77（高 6・中 15・低 8）
 
 ---
 
@@ -33,6 +33,7 @@ Java 版の資産を C++ に移し替えていく。このファイルはコミ�
 | `graph/unionfind/MonoidUnionFind` | 同上（`union_find<S, op, e>`） | 未 | 値の有無もテンプレート引数。旧版と違い巻き戻せる |
 | `graph/unionfind/RelationalUnionFind` | `graph/union_find/relational_union_find.hpp` | **済** | 巻き戻す版は `rollback_relational_union_find`（同ファイルの別名） |
 | （新規） | `graph/union_find/keyed_union_find.hpp` | 未 | Java 版に対応なし。任意の Union-Find をキーで引けるようにする |
+| `graph/tree/HLD` | `graph/tree/hld.hpp` | **済** | LCA も兼ねる。`auxiliary`（仮想木）は未移植 |
 | `graph/Edge` `graph/Graph` | `graph/graph.hpp` | 未 | 隣接リスト。2 ファイルを 1 つにまとめた |
 | `graph/Dijkstra` | `graph/dijkstra.hpp` | 未 | `graph.hpp` と組で使う |
 | `dataStructure/Trie` | `string/trie.hpp` | 未 | 文字列のトライ。接頭辞の本数を数える |
@@ -114,7 +115,6 @@ Java に無い追加分（未 verify）:
 
 | 元 | 想定ファイル名 | 内容 |
 |---|---|---|
-| `graph/tree/HLD` | `graph/tree/hld.hpp` | HL 分解 |
 | `graph/tree/ReRootingDp` | `graph/tree/rerooting.hpp` | 全方位木 DP |
 | `graph/LowLink` | `graph/lowlink.hpp` | 橋・関節点 |
 | `dataStructure/SWAG` | `data_structure/swag.hpp` | Sliding Window Aggregation |
