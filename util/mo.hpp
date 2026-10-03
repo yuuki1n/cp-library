@@ -14,6 +14,7 @@
  *   solve(add_l, add_r, rem_l, rem_r, get)    左右で処理が変わるとき
  *
  *   add(i) / rem(i) は位置 i を今の区間に入れる / 外す。get() は今の答えを返す。
+ *   get(i) と書くと、何番目のクエリを答えているかを受け取れる。
  *   状態は呼び出し側で持つ（ラムダで捕まえる）。
  *   区間の転倒数のように「左から入れたか右から入れたか」で処理が違うときは
  *   4 つ渡す。引数は動かす順（左を足す / 右を足す / 左を外す / 右を外す）。
@@ -42,6 +43,12 @@ struct mo {
   int n, b_;  // b_ が 0 以下なら solve のときに決める
   std::vector<int> ql, qr;
 
+  // get は get() でも get(i) でも書ける。戻り値は参照でも値で受け取る
+  template <class Get> static auto call_get(Get& g, int i) {
+    if constexpr (std::is_invocable_v<Get, int>) return g(i);
+    else return g();
+  }
+
  public:
   explicit mo(int n_ = 0, int b = -1) : n(n_), b_(b) {}
 
@@ -58,7 +65,7 @@ struct mo {
   template <class AddL, class AddR, class RemL, class RemR, class Get>
   auto solve(AddL add_l, AddR add_r, RemL rem_l, RemR rem_r, Get get) const {
     int q = (int)ql.size();
-    std::vector<std::decay_t<decltype(get())>> ans(q);  // get が参照を返しても受けられる
+    std::vector<decltype(call_get(get, 0))> ans(q);  // get が参照を返しても値で受ける
     if (q == 0) return ans;
 
     int b = b_ > 0 ? b_ : std::max(1, int(std::sqrt(1.5 / q) * n) + 1);
@@ -77,7 +84,7 @@ struct mo {
       while (r < qr[i]) add_r(r++);
       while (l < ql[i]) rem_l(l++);
       while (qr[i] < r) rem_r(--r);
-      ans[i] = get();
+      ans[i] = call_get(get, i);  // get(i) と書けば何番目のクエリを答えているか分かる
     }
     return ans;
   }

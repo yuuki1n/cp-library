@@ -188,6 +188,45 @@ int main() {
     report("ブロック幅の上書き");
   }
 
+  {  // ---- get(i) でクエリ番号を受け取れる ----
+    ng = 0;
+    int n = 60;
+    vector<long long> a(n);
+    for (auto& x : a) x = (long long)(rng() % 100);
+
+    int q = 40;
+    vector<int> ql(q), qr(q);
+    mo m(n);
+    for (int i = 0; i < q; i++) {
+      int l = (int)(rng() % (unsigned)(n + 1)), r = (int)(rng() % (unsigned)(n + 1));
+      if (l > r) swap(l, r);
+      ql[i] = l, qr[i] = r, m.add_query(l, r);
+    }
+
+    long long sum = 0;
+    auto add = [&](int i) { sum += a[i]; };
+    auto rem = [&](int i) { sum -= a[i]; };
+
+    // 渡ってくる i が、並べ替える前のクエリ番号になっているか
+    vector<int> seen(q, 0);
+    auto got = m.solve(add, rem, [&](int i) {
+      seen[i]++;
+      return sum * 1000 + i;  // 番号を答えに混ぜて、どのクエリに入ったか見る
+    });
+    for (int i = 0; i < q; i++) {
+      long long want = 0;
+      for (int j = ql[i]; j < qr[i]; j++) want += a[j];
+      check(got[i] == want * 1000 + i, "get(i) の i が add_query 順 i=" + to_string(i));
+      check(seen[i] == 1, "各クエリちょうど 1 回 i=" + to_string(i));
+    }
+
+    // get() と get(i) で答えが変わらない
+    sum = 0;
+    auto plain = m.solve(add, rem, [&] { return sum; });
+    for (int i = 0; i < q; i++) check(got[i] / 1000 == plain[i], "get() と一致 i=" + to_string(i));
+    report("get(i) でクエリ番号を受け取れる");
+  }
+
   {  // ---- 端のケース ----
     ng = 0;
     {  // クエリ 0 個

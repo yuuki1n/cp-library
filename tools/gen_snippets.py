@@ -28,6 +28,8 @@ DEPS = {
     # keyed_union_find は中身の Union-Find が要る。いちばん多い組み合わせを既定にする。
     # relational_union_find にかぶせるなら、そちらを追加で貼る（ガードがあるので重ねて安全）
     'keyed_union_find': ['union_find'],
+    # 木上の Mo は lca に hld、区間の並べ替えに mo を使う
+    'tree_mo': ['hld', 'mo'],
 }
 
 

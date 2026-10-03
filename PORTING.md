@@ -49,6 +49,7 @@ Java に無い追加分（未 verify）:
 | C++ | 内容 |
 |---|---|
 | `math/maxplus_matrix.hpp` | (max, +) 半環の行列。k 辺での最長路など |
+| `graph/tree/tree_mo.hpp` | 木のパスに対する Mo。オイラーツアーで 1 本の列に落とす。`hld` と `mo` を使う |
 
 ---
 

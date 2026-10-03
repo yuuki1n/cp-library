@@ -3,7 +3,7 @@
 `test/verify/` のコードをジャッジに通した記録。移植そのものの進み具合は
 [PORTING.md](PORTING.md) を参照。
 
-**5 / 18 が verify 済み。** `test/` のテストは総当たりとの突き合わせなので、
+**5 / 19 が verify 済み。** `test/` のテストは総当たりとの突き合わせなので、
 実装の正しさはある程度見ているが、公開ジャッジを通したものはまだ少ない。
 
 | ライブラリ | 状態 | verify 先 |
@@ -25,8 +25,11 @@
 | `maxplus_matrix` | 未 | 未定 |
 | `graph` | 未 | `dijkstra` と一緒に検証される |
 | `hld` | **済** | [vertex_set_path_composite](https://judge.yosupo.jp/problem/vertex_set_path_composite)（非可換な合成）。[lca](https://judge.yosupo.jp/problem/lca) / [vertex_add_path_sum](https://judge.yosupo.jp/problem/vertex_add_path_sum) / [vertex_add_subtree_sum](https://judge.yosupo.jp/problem/vertex_add_subtree_sum) / [jump_on_tree](https://judge.yosupo.jp/problem/jump_on_tree) は未 |
+| `tree_mo` | 未（提出待ち） | [ABC477 G - Frequency Query on Tree](https://atcoder.jp/contests/abc477/tasks/abc477_g)。Library Checker に木上 Mo の問題が無いので AtCoder から取る。手元ではサンプル 2 つと総当たり 521 ケースで確認済み |
 | `dijkstra` | 未 | [shortest_path](https://judge.yosupo.jp/problem/shortest_path) |
 
 verify を通したら、この表の状態を「済」にしてリンクを残す。記録はここだけにまとめる
 （ヘッダのコメントには書かない）。
-手元で全ケースを回すには `python tools/verify_local.py test/verify/foo.cpp`。
+手元で全ケースを回すには `python tools/verify_local.py test/<階層>/verify/foo.cpp`。
+これは Library Checker 専用なので、AtCoder のものはサンプルと総当たりで見る。
+提出するときは `python tools/bundle.py test/<階層>/verify/foo.cpp` で 1 ファイルにまとめる。
