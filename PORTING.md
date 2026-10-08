@@ -14,9 +14,9 @@ Java 版の資産を C++ に移し替えていく。このファイルはコミ�
 移植の進み具合と verify の進み具合は別物なので、それぞれ分けて数えている。
 ジャッジを通したかどうかは [VERIFY.md](VERIFY.md) を参照。
 
-- **移植済み** 20 / 77（うち verify 済み **5**）
+- **移植済み** 21 / 77（うち verify 済み **5**）
 - **移植不要** 30 / 77（ACL 16・標準ライブラリ 10・対象外 4）
-- **残り** 27 / 77（高 4・中 15・低 8）
+- **残り** 26 / 77（高 3・中 15・低 8）
 
 ---
 
@@ -43,6 +43,7 @@ Java 版の資産を C++ に移し替えていく。このファイルはコミ�
 | スニペット `rle` | `util/rle.hpp` | 未 | ランレングス圧縮。`rle_decode` も持つ |
 | `dataStructure/.../AVLSegmentTree` | `data_structure/avl_segtree.hpp` | **済** | 挿入・削除・区間作用・区間反転・区間巡回シフト・葉のランレングス圧縮・Beats |
 | `math/Combin` | `math/combin.hpp` | 未 | 階乗・逆階乗テーブル。2 倍ずつ伸びるので大きさを決めなくてよい |
+| `string/RollingHash` | `string/rolling_hash.hpp` | 未 | 法 2^61-1。逆向き・回文・lcp・1 点更新つき |
 | スニペット `Matrix` | `math/matrix.hpp` | 未 | Java 版は mod 積と `pow` だけ。C++ 版は `det` / `rank` / `inv` / `solve` を足した上位互換 |
 
 Java に無い追加分（未 verify）:
@@ -108,7 +109,6 @@ Java に無い追加分（未 verify）:
 | 元 | 想定ファイル名 | 内容 |
 |---|---|---|
 | `dataStructure/rangeData/SparseTable` | `data_structure/sparse_table.hpp` | 区間 min/max を `O(1)` |
-| `string/RollingHash` | `string/rolling_hash.hpp` | |
 | `other/Grid` | `util/grid.hpp` | 2 次元グリッドの添字変換と 4/8 近傍 |
 | スニペット `zAlgo` | `string/z_algorithm.hpp` | Z-algorithm。ACL に無い |
 
