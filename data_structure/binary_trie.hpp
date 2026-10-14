@@ -2,6 +2,8 @@
 #include <cassert>
 #include <vector>
 
+// https://github.com/yuuki1n/cp-library/blob/main/data_structure/binary_trie.hpp
+
 /*
  * binary_trie<BITS, T> : 非負整数の多重集合。xor と k 番目が速い
  *

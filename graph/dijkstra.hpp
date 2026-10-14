@@ -6,6 +6,8 @@
 #include <utility>
 #include <vector>
 
+// https://github.com/yuuki1n/cp-library/blob/main/graph/dijkstra.hpp
+
 namespace dijkstra_internal {
 // 未到達を表す既定値。テンプレートの LINF と同じ値にしてある。
 // W に入りきらない型（int など）では max() / 2 に落とす。

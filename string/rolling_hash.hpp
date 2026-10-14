@@ -5,6 +5,8 @@
 #include <string>
 #include <vector>
 
+// https://github.com/yuuki1n/cp-library/blob/main/string/rolling_hash.hpp
+
 /*
  * rolling_hash<Updatable> : 列の部分列のハッシュを引く
  *

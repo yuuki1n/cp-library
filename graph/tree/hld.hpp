@@ -2,6 +2,8 @@
 #include <utility>
 #include <vector>
 
+// https://github.com/yuuki1n/cp-library/blob/main/graph/tree/hld.hpp
+
 /*
  * hld : HL 分解（Heavy-Light Decomposition）。構築 O(n)
  *

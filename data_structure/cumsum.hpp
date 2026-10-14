@@ -1,6 +1,8 @@
 #include <cstddef>
 #include <vector>
 
+// https://github.com/yuuki1n/cp-library/blob/main/data_structure/cumsum.hpp
+
 /*
  * cumsum<T> : 1 次元累積和
  *

@@ -1,6 +1,8 @@
 #include <utility>
 #include <vector>
 
+// https://github.com/yuuki1n/cp-library/blob/main/util/inversion_count.hpp
+
 /*
  * inversion_count(a) : 転倒数
  *

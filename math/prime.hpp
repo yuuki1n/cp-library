@@ -4,6 +4,8 @@
 #include <utility>
 #include <vector>
 
+// https://github.com/yuuki1n/cp-library/blob/main/math/prime.hpp
+
 /*
  * 素数判定・素因数分解・約数列挙
  *

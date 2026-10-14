@@ -1,6 +1,8 @@
 #include <cassert>
 #include <vector>
 
+// https://github.com/yuuki1n/cp-library/blob/main/graph/graph.hpp
+
 /*
  * graph<W> : グラフの入れ物（隣接リスト）
  *

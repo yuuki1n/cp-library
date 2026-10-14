@@ -3,6 +3,8 @@
 #include <utility>
 #include <vector>
 
+// https://github.com/yuuki1n/cp-library/blob/main/data_structure/avl_segtree.hpp
+
 namespace avl_segtree_internal {
 // S が sz / fail を持つか。持たない型でも載せられるようにする
 template <class S>

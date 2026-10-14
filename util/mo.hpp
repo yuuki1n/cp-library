@@ -4,6 +4,8 @@
 #include <utility>
 #include <vector>
 
+// https://github.com/yuuki1n/cp-library/blob/main/util/mo.hpp
+
 /*
  * mo : Mo's algorithm。クエリを並べ替えて区間を少しずつ動かす
  *

@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+// https://github.com/yuuki1n/cp-library/blob/main/string/trie.hpp
+
 /*
  * trie<SIGMA, OFFSET> : 文字列のトライ木
  *

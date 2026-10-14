@@ -6,6 +6,8 @@
 #include <utility>
 #include <vector>
 
+// https://github.com/yuuki1n/cp-library/blob/main/graph/union_find/union_find.hpp
+
 namespace union_find_internal {
 // 値を持たないときの印。既定の op を実体化するためだけに演算を持たせてある
 struct none {

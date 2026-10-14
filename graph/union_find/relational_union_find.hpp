@@ -7,6 +7,8 @@
 #include <utility>
 #include <vector>
 
+// https://github.com/yuuki1n/cp-library/blob/main/graph/union_find/relational_union_find.hpp
+
 namespace relational_union_find_internal {
 template <class F> F add(F a, F b) { return a + b; }
 template <class F> F zero() { return F(); }

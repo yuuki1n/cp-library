@@ -2,6 +2,8 @@
 #include <cassert>
 #include <vector>
 
+// https://github.com/yuuki1n/cp-library/blob/main/math/combin.hpp
+
 /*
  * combin<T> : 階乗と逆階乗を持って二項係数などを返す
  *

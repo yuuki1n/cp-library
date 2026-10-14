@@ -3,6 +3,8 @@
 #include <utility>
 #include <vector>
 
+// https://github.com/yuuki1n/cp-library/blob/main/util/rle.hpp
+
 /*
  * rle(v) : ランレングス圧縮
  *

@@ -3,6 +3,8 @@
 #include <utility>
 #include <vector>
 
+// https://github.com/yuuki1n/cp-library/blob/main/graph/tree/tree_mo.hpp
+
 /*
  * tree_mo : 木のパスに対する Mo's algorithm。オイラーツアーで 1 本の列に落とす
  *

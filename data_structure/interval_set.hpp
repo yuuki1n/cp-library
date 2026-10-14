@@ -3,6 +3,8 @@
 #include <map>
 #include <utility>
 
+// https://github.com/yuuki1n/cp-library/blob/main/data_structure/interval_set.hpp
+
 /*
  * interval_set : 半開区間 [l, r) の集合
  *

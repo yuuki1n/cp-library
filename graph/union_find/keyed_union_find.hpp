@@ -2,6 +2,8 @@
 #include <utility>
 #include <vector>
 
+// https://github.com/yuuki1n/cp-library/blob/main/graph/union_find/keyed_union_find.hpp
+
 /*
  * keyed_union_find<K, UF, Map> : 任意の Union-Find をキーで引けるようにする
  *
