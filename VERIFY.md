@@ -11,7 +11,7 @@
 | `cumsum` | 未 | [static_range_sum](https://judge.yosupo.jp/problem/static_range_sum) |
 | `cumsum2d` | 未 | 未定。Library Checker に密な 2 次元累積和そのものの問題は無い |
 | `interval_set` | 未 | 未定 |
-| `prime` | 未 | [factorize](https://judge.yosupo.jp/problem/factorize) / [enumerate_primes](https://judge.yosupo.jp/problem/enumerate_primes) |
+| `prime` | **一部済** | [enumerate_primes](https://judge.yosupo.jp/problem/enumerate_primes)（`primes`）。[factorize](https://judge.yosupo.jp/problem/factorize) は未 |
 | `inversion_count` | 未 | 未定。[static_range_inversions_query](https://judge.yosupo.jp/problem/static_range_inversions_query) は Mo's algorithm 前提で、配列全体の転倒数だけでは通らない |
 | `rle` | 未 | 未定。Library Checker に該当する問題は無い |
 | `mo` | **済** | [static_range_count_distinct](https://judge.yosupo.jp/problem/static_range_count_distinct) / [static_range_inversions_query](https://judge.yosupo.jp/problem/static_range_inversions_query)（左右を区別する版） |

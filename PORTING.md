@@ -27,7 +27,7 @@ Java 版の資産を C++ に移し替えていく。このファイルはコミ�
 | `dataStructure/rangeData/PrefixSum` | `data_structure/cumsum.hpp` | 未 | |
 | `dataStructure/rectangleData/Sum2D` | `data_structure/cumsum2d.hpp` | 未 | |
 | `dataStructure/rangeData/RangeSet` | `data_structure/interval_set.hpp` | 未 | 名前を `IntervalSet` に変更 |
-| `math/Prime` | `math/prime.hpp` | 未 | SPF 篩 + Pollard's rho |
+| `math/Prime` | `math/prime.hpp` | **一部済** | SPF 篩 + Pollard's rho。n 以下の素数列挙 `primes` と、重複込みの `prime_factors` を追加 |
 | `graph/unionfind/UnionFind` | `graph/union_find/union_find.hpp` | **済** | `getGroup` にあたる `group(x)` を持つ。ACL の `dsu` には無い |
 | `graph/unionfind/RollbackUnionFind` | 同上（`rollback_union_find` の別名） | **済** | 巻き戻しをテンプレート引数で切り替える |
 | `graph/unionfind/MonoidUnionFind` | 同上（`union_find<S, op, e>`） | 未 | 値の有無もテンプレート引数。旧版と違い巻き戻せる |

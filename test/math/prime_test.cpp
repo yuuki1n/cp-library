@@ -170,6 +170,114 @@ int main() {
   }
 
   // ---- 速度: 小さい数を大量に ----
+  // ---- prime_factors（重複込み）----
+  {
+    int bad = 0;
+    for (ll n = 1; n <= 20000; n++) {
+      auto fs = prime_factors(n);
+      // 積が n に戻るか / 昇順か / 全部素数か
+      ll prod = 1;
+      for (size_t i = 0; i < fs.size(); i++) {
+        prod *= fs[i];
+        if (i && fs[i - 1] > fs[i]) bad++;
+        if (!is_prime(fs[i])) bad++;
+      }
+      if (prod != n) bad++;
+      // factorize を展開したものと一致するか
+      vector<ll> want;
+      for (auto [q, e] : factorize(n))
+        for (int i = 0; i < e; i++) want.push_back(q);
+      if (fs != want) bad++;
+    }
+    printf("prime_factors 積 / 昇順 / 素数性 : %s\n", bad == 0 ? "OK" : "NG");
+    failed += bad ? 1 : 0;
+  }
+  {
+    // 大きい n（Pollard の rho を通る経路）でも昇順か
+    int bad = 0;
+    for (int t = 0; t < 2000; t++) {
+      ll n = (ll)(rng() % 1000000000000000000ULL) + 1;
+      auto fs = prime_factors(n);
+      __int128 prod = 1;
+      for (size_t i = 0; i < fs.size(); i++) {
+        prod *= fs[i];
+        if (i && fs[i - 1] > fs[i]) bad++;
+        if (!is_prime(fs[i])) bad++;
+      }
+      if (prod != (__int128)n) bad++;
+    }
+    // 大きい素数の積。順序が入れ替わりやすい形
+    for (auto [a, b] : vector<pair<ll, ll>>{{999999937LL, 1000000007LL}, {1000000007LL, 999999937LL},
+                                            {2LL, 999999999989LL}, {999999999989LL, 3LL}}) {
+      auto fs = prime_factors(a * b);
+      for (size_t i = 1; i < fs.size(); i++)
+        if (fs[i - 1] > fs[i]) bad++;
+    }
+    printf("prime_factors 大きい n の昇順   : %s\n", bad == 0 ? "OK" : "NG");
+    failed += bad ? 1 : 0;
+  }
+  {
+    check(prime_factors(24) == (vector<ll>{2, 2, 2, 3}), "prime_factors(24)");
+    check(prime_factors(1).empty() && prime_factors(0).empty() && prime_factors(-6).empty(),
+          "prime_factors は n <= 1 で空");
+    check(prime_factors(2) == vector<ll>{2}, "prime_factors(2)");
+    check(prime_factors(1024) == vector<ll>(10, 2), "prime_factors(1024) は 2 が 10 個");
+    check((ll)prime_factors(1000000007LL).size() == 1, "大きい素数は 1 個");
+    check(prime_factors(1000000007LL * 1000000009LL) ==
+              (vector<ll>{1000000007LL, 1000000009LL}),
+          "半素数は 2 個");
+    printf("prime_factors 既知の値 / 境界    : OK\n");
+  }
+
+  // ---- primes を篩と照合 ----
+  {
+    int bad = 0;
+    for (int n = 0; n <= 3000; n++) {
+      vector<ll> want;
+      for (int i = 2; i <= n; i++)
+        if (sieve[i]) want.push_back(i);
+      if (primes(n) != want) bad++;
+    }
+    printf("primes    篩と照合 (0..3000)  : %s\n", bad == 0 ? "OK" : "NG");
+    failed += bad ? 1 : 0;
+  }
+  {
+    // 端と、2 のべき / 素数ちょうど / 合成数ちょうどの境目
+    check(primes(-5).empty() && primes(0).empty() && primes(1).empty(), "primes は n < 2 で空");
+    check(primes(2) == vector<ll>{2}, "primes(2)");
+    check(primes(3) == vector<ll>{2, 3}, "primes(3)");
+    check(primes(4) == (vector<ll>{2, 3}), "primes(4) は 4 を含まない");
+    check(primes(9) == (vector<ll>{2, 3, 5, 7}), "primes(9) は 9 を含まない");
+    check((ll)primes(100).size() == 25, "100 以下の素数は 25 個");
+    check(primes(100).back() == 97, "100 以下の最大は 97");
+    check((ll)primes(1000000).size() == 78498, "10^6 以下の素数は 78498 個");
+    // 上限ちょうどが素数のとき取りこぼさないか
+    for (ll q : {2LL, 3LL, 5LL, 7LL, 97LL, 101LL, 999983LL})
+      check(primes(q).back() == q, "上限が素数なら最後がそれ");
+    printf("primes    端 / 既知の個数     : OK\n");
+  }
+  {
+    // is_prime と突き合わせる
+    auto ps = primes(500000);
+    int bad = 0;
+    size_t k = 0;
+    for (ll i = 2; i <= 500000; i++) {
+      bool in = k < ps.size() && ps[k] == i;
+      if (in != is_prime(i)) bad++;
+      if (in) k++;
+    }
+    if (k != ps.size()) bad++;
+    printf("primes    is_prime と照合     : %s\n", bad == 0 ? "OK" : "NG");
+    failed += bad ? 1 : 0;
+  }
+  {
+    auto t0 = chrono::steady_clock::now();
+    auto ps = primes(10000000);
+    auto ms = chrono::duration_cast<chrono::milliseconds>(chrono::steady_clock::now() - t0).count();
+    printf("速度 primes(1e7)              : %lld ms (%zu 個)\n", (ll)ms, ps.size());
+    check(ps.size() == 664579, "10^7 以下の素数は 664579 個");
+    check(ms < 1000, "primes(1e7) が 1 秒以内");
+  }
   {
     auto t0 = chrono::steady_clock::now();
     ll s = 0;

@@ -10,6 +10,8 @@
  *   is_prime(n)   決定的 Miller-Rabin。n < 2^64 で確実
  *   factorize(n)  vector<pair<long long, int>> を素数の昇順で返す。n <= 1 は空
  *   divisors(n)   約数を昇順で全列挙。n <= 0 は空。n = 1 なら {1}
+ *   prime_factors(n)  素因数を重複も含めて昇順で返す。24 なら {2, 2, 2, 3}
+ *   primes(n)     n 以下の素数を昇順で全列挙。n < 2 は空
  *
  *   n <= 10^6 は SPF（最小素因数）テーブルで O(log n)、超えたら
  *   Miller-Rabin + Pollard の rho で O(n^(1/4)) 程度。
@@ -17,10 +19,16 @@
  *   （上限まで作ると約 2 MB / 1 ms）。使わなければ確保もされない。
  *   __int128 を使うので 64bit 環境専用。スレッドセーフではない。
  *
+ *   primes だけは上のテーブルとは別に、奇数だけのエラトステネスを毎回回す。
+ *   結果は持ち回らないので、何度も要るなら呼び出し側で取っておくこと。
+ *   n = 10^8 で素数が約 5.8 * 10^6 個、戻り値だけで 46 MB になる点に注意。
+ *
  * 使用例:
  *   for (auto [p, e] : factorize(360)) print(p, e);   // 2 3 / 3 2 / 5 1
  *   auto ds = divisors(360);
  *   if (is_prime(1000000007)) ...
+ *   fore(p, primes(100)) print(p);                    // 2 3 5 7 ... 97
+ *   fore(p, prime_factors(24)) print(p);              // 2 2 2 3
  */
 
 namespace prime_internal {
@@ -215,5 +223,29 @@ inline std::vector<long long> divisors(long long n) {
     }
   }
   std::sort(res.begin(), res.end());
+  return res;
+}
+
+// 素因数を重複も含めて昇順で返す。24 なら {2, 2, 2, 3}。n <= 1 は空
+inline std::vector<long long> prime_factors(long long n) {
+  std::vector<long long> res;
+  for (const auto& pe : factorize(n))
+    for (int i = 0; i < pe.second; i++) res.push_back(pe.first);
+  return res;
+}
+
+// n 以下の素数を昇順で全列挙する。奇数だけのエラトステネス。
+inline std::vector<long long> primes(long long n) {
+  std::vector<long long> res;
+  if (n < 2) return res;
+  res.push_back(2);
+  if (n < 3) return res;
+  // bit i が奇数 2i + 1 を表す。i = 1 が 3、i = n / 2 が n 以下の最大の奇数
+  std::vector<bool> comp(std::size_t(n / 2) + 1, false);
+  for (long long p = 3; p * p <= n; p += 2)
+    if (!comp[std::size_t(p >> 1)])
+      for (long long q = p * p; q <= n; q += p * 2) comp[std::size_t(q >> 1)] = true;
+  for (long long p = 3; p <= n; p += 2)
+    if (!comp[std::size_t(p >> 1)]) res.push_back(p);
   return res;
 }
