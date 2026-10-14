@@ -1,0 +1,78 @@
+#!/bin/sh
+# コミット前の検査。有効にするには一度だけ:  git config core.hooksPath tools/hooks
+#
+#   1. URL 行がパスとずれていないか                （一瞬）
+#   2. 触った .hpp を使っているテストをビルドして実行（重い。数十秒かかる）
+#   3. スニペットを作れるか                        （一瞬）
+#
+# ライブラリ本体の .hpp を触っていないコミットでは何もしない。
+# 急ぐときは git commit --no-verify で飛ばせる。
+#
+# 注意: ビルドするのは作業ツリーであってステージした中身ではない。
+# ステージしていない変更があれば知らせるので、気になるなら --no-verify で飛ばすか
+# 先に stash すること。安全側に倒して、フックが勝手に stash することはしない。
+
+root=$(git rev-parse --show-toplevel) || exit 0
+cd "$root" || exit 0
+
+hpps=$(git diff --cached --name-only --diff-filter=ACM | grep '\.hpp$' | grep -v '^test/')
+[ -n "$hpps" ] || exit 0
+
+command -v python >/dev/null 2>&1 || { echo "pre-commit: python が無いので検査をとばす" >&2; exit 0; }
+command -v g++ >/dev/null 2>&1 || { echo "pre-commit: g++ が無いので検査をとばす" >&2; exit 0; }
+
+# --- 1. URL ---
+if ! python tools/sync_url.py --check; then
+  echo "pre-commit: python tools/sync_url.py で直してから commit し直す" >&2
+  exit 1
+fi
+
+# --- 3. スニペット（書かずに作れるかだけ見る。実際の生成は post-commit）---
+if ! python tools/gen_snippets.py --dry-run >/dev/null; then
+  echo "pre-commit: スニペットを作れない（名前の重複か DEPS の循環）" >&2
+  exit 1
+fi
+
+# --- 2. テスト ---
+# 触った .hpp の名前を含むテストを集める。共有しているテストも拾える
+tests=""
+for h in $hpps; do
+  for t in $(grep -rl "$(basename "$h")" test --include='*_test.cpp' 2>/dev/null); do
+    case " $tests " in
+      *" $t "*) ;;
+      *) tests="$tests $t" ;;
+    esac
+  done
+done
+
+if [ -z "$tests" ]; then
+  echo "pre-commit: 対応するテストが無い: $hpps" >&2
+  echo "pre-commit: テストを足すか、--no-verify で飛ばす" >&2
+  exit 1
+fi
+
+dirty=$(git diff --name-only -- $hpps)
+[ -n "$dirty" ] && echo "pre-commit: ステージしていない変更も混ざる: $dirty" >&2
+
+# verify_local.py と同じく ACL_PATH で上書きできる
+acl=${ACL_PATH:-$(cd "$root/.." 2>/dev/null && pwd)/acl}
+status=0
+for t in $tests; do
+  echo "pre-commit: $t"
+  d=$(dirname "$t")
+  f=$(basename "$t")
+  inc=""
+  grep -q '<atcoder/' "$t" && inc="-I$acl"
+  log=$(mktemp)
+  cmd="g++ -std=gnu++20 -O2 -Wall -Wextra -I.. $inc $f -o .pre_commit.exe"
+  if ! (cd "$d" && $cmd && ./.pre_commit.exe) >"$log" 2>&1; then
+    echo "pre-commit: $t が失敗した" >&2
+    tail -20 "$log" >&2
+    echo "pre-commit: 手で再現するなら  cd $d && $cmd && ./.pre_commit.exe" >&2
+    status=1
+  fi
+  rm -f "$log" "$d/.pre_commit.exe"
+done
+
+[ $status -ne 0 ] && echo "pre-commit: テストが通らないので中断した" >&2
+exit $status
