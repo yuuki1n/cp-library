@@ -3,7 +3,7 @@
 `test/verify/` のコードをジャッジに通した記録。移植そのものの進み具合は
 [PORTING.md](PORTING.md) を参照。
 
-**5 / 20 が verify 済み。** `test/` のテストは総当たりとの突き合わせなので、
+**5 / 21 が verify 済み。** `test/` のテストは総当たりとの突き合わせなので、
 実装の正しさはある程度見ているが、公開ジャッジを通したものはまだ少ない。
 
 | ライブラリ | 状態 | verify 先 |
@@ -27,6 +27,7 @@
 | `hld` | **済** | [vertex_set_path_composite](https://judge.yosupo.jp/problem/vertex_set_path_composite)（非可換な合成）。[lca](https://judge.yosupo.jp/problem/lca) / [vertex_add_path_sum](https://judge.yosupo.jp/problem/vertex_add_path_sum) / [vertex_add_subtree_sum](https://judge.yosupo.jp/problem/vertex_add_subtree_sum) / [jump_on_tree](https://judge.yosupo.jp/problem/jump_on_tree) は未 |
 | `tree_mo` | 未（提出待ち） | [ABC477 G - Frequency Query on Tree](https://atcoder.jp/contests/abc477/tasks/abc477_g)。Library Checker に木上 Mo の問題が無いので AtCoder から取る。手元ではサンプル 2 つと総当たり 521 ケースで確認済み |
 | `rolling_hash` | 未 | 未定。[zalgorithm](https://judge.yosupo.jp/problem/zalgorithm) は別物。AtCoder の文字列検索系から取る |
+| `digit_dp` | 未 | 未定。Library Checker に桁 DP そのものの問題は無い。[AWC0043 E](https://atcoder.jp/contests/awc0043/tasks/awc0043_e) で使って通る形は確認済み |
 | `dijkstra` | 未 | [shortest_path](https://judge.yosupo.jp/problem/shortest_path) |
 
 verify を通したら、この表の状態を「済」にしてリンクを残す。記録はここだけにまとめる
