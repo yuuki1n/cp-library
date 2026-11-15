@@ -12,6 +12,8 @@
 # ステージしていない変更があれば知らせるので、気になるなら --no-verify で飛ばすか
 # 先に stash すること。安全側に倒して、フックが勝手に stash することはしない。
 
+export PYTHONIOENCODING=utf-8  # 端末によっては python の日本語が化けるため
+
 root=$(git rev-parse --show-toplevel) || exit 0
 cd "$root" || exit 0
 
@@ -20,6 +22,11 @@ hpps=$(git diff --cached --name-only --diff-filter=ACM | grep '\.hpp$' | grep -v
 
 command -v python >/dev/null 2>&1 || { echo "pre-commit: python が無いので検査をとばす" >&2; exit 0; }
 command -v g++ >/dev/null 2>&1 || { echo "pre-commit: g++ が無いので検査をとばす" >&2; exit 0; }
+# Git for Windows の sh は自前の /mingw64/bin を PATH の先頭に置く。そのままだと
+# msys64 の g++ が呼ぶ cc1plus がそちらの DLL を拾い、何も言わずに終了値 1 で落ちる。
+# テストのビルドと実行のときだけ g++ のディレクトリを先頭に戻す。全体の PATH を
+# 変えると、同じディレクトリにある別の python まで拾ってしまうので広げないこと
+gdir=$(dirname "$(command -v g++)")
 
 # --- 1. URL ---
 if ! python tools/sync_url.py --check; then
@@ -63,15 +70,23 @@ for t in $tests; do
   f=$(basename "$t")
   inc=""
   grep -q '<atcoder/' "$t" && inc="-I$acl"
-  log=$(mktemp)
   cmd="g++ -std=gnu++20 -O2 -Wall -Wextra -I.. $inc $f -o .pre_commit.exe"
-  if ! (cd "$d" && $cmd && ./.pre_commit.exe) >"$log" 2>&1; then
-    echo "pre-commit: $t が失敗した" >&2
-    tail -20 "$log" >&2
+  # 出力は変数で受ける（一時ファイルは要らない）。PATH の変更はこのサブシェルの中だけ
+  out=$( (cd "$d" && PATH="$gdir:$PATH" && export PATH && $cmd && ./.pre_commit.exe) 2>&1 )
+  rc=$?
+  rm -f "$d/.pre_commit.exe"
+  if [ $rc -ne 0 ]; then
+    echo "pre-commit: $t が失敗した（終了値 $rc）" >&2
+    if [ -n "$out" ]; then
+      echo "$out" | tail -20 >&2
+    else
+      echo "pre-commit: 出力が無い。g++ を実行できていない可能性がある" >&2
+      echo "pre-commit: PATH の先頭に別の MinGW（Git 付属の /mingw64/bin など）があると、DLL を取り違えてこうなる" >&2
+      echo "pre-commit: g++ = $(command -v g++)  $(g++ --version 2>&1 | head -1)" >&2
+    fi
     echo "pre-commit: 手で再現するなら  cd $d && $cmd && ./.pre_commit.exe" >&2
     status=1
   fi
-  rm -f "$log" "$d/.pre_commit.exe"
 done
 
 [ $status -ne 0 ] && echo "pre-commit: テストが通らないので中断した" >&2
