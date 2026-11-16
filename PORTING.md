@@ -14,9 +14,9 @@ Java 版の資産を C++ に移し替えていく。このファイルはコミ�
 移植の進み具合と verify の進み具合は別物なので、それぞれ分けて数えている。
 ジャッジを通したかどうかは [VERIFY.md](VERIFY.md) を参照。
 
-- **移植済み** 22 / 77（うち verify 済み **5**）
+- **移植済み** 24 / 77（うち verify 済み **5**）
 - **移植不要** 30 / 77（ACL 16・標準ライブラリ 10・対象外 4）
-- **残り** 25 / 77（高 3・中 14・低 8）
+- **残り** 23 / 77（高 2・中 13・低 8）
 
 ---
 
@@ -45,6 +45,8 @@ Java 版の資産を C++ に移し替えていく。このファイルはコミ�
 | `math/Combin` | `math/combin.hpp` | 未 | 階乗・逆階乗テーブル。2 倍ずつ伸びるので大きさを決めなくてよい |
 | `string/RollingHash` | `string/rolling_hash.hpp` | 未 | 法 2^61-1。逆向き・回文・lcp・1 点更新つき |
 | `other/DigitDp` | `util/digit_dp.hpp` | 未 | 桁 DP。tight と先頭ゼロはライブラリが持つ |
+| `dataStructure/rangeData/SparseTable` | `data_structure/disjoint_sparse_table.hpp` | 未 | Java 版も中身は DST。左向きの累積の順が逆で非可換な op が壊れていたのを直した |
+| `dataStructure/rectangleData/SparseTable2D` | `data_structure/disjoint_sparse_table2d.hpp` | 未 | Java 版は冪等用の普通のスパーステーブル。DST に置き換え、冪等でない可換な op（和・積など）も乗る |
 | スニペット `Matrix` | `math/matrix.hpp` | 未 | Java 版は mod 積と `pow` だけ。C++ 版は `det` / `rank` / `inv` / `solve` を足した上位互換 |
 
 Java に無い追加分（未 verify）:
@@ -109,7 +111,6 @@ Java に無い追加分（未 verify）:
 
 | 元 | 想定ファイル名 | 内容 |
 |---|---|---|
-| `dataStructure/rangeData/SparseTable` | `data_structure/sparse_table.hpp` | 区間 min/max を `O(1)` |
 | `other/Grid` | `util/grid.hpp` | 2 次元グリッドの添字変換と 4/8 近傍 |
 | スニペット `zAlgo` | `string/z_algorithm.hpp` | Z-algorithm。ACL に無い |
 
@@ -123,7 +124,6 @@ Java に無い追加分（未 verify）:
 | `dataStructure/FastSet` | `data_structure/fast_set.hpp` | 64 分木の整数集合。`floor` / `ceiling` が速い |
 | `dataStructure/.../DynamicSegmentTree` | `data_structure/dynamic_segtree.hpp` | 座標が大きいときのセグ木 |
 | `dataStructure/cuboidData/Sum3D` | `data_structure/cumsum3d.hpp` | 3 次元累積和 |
-| `dataStructure/rectangleData/SparseTable2D` | `data_structure/sparse_table2d.hpp` | |
 | スニペット `BIT2D` | `data_structure/bit2d.hpp` | 2 次元 BIT。点加算・矩形和 |
 | スニペット `SegmentTree2D` | `data_structure/segtree2d.hpp` | 2 次元セグ木 |
 | スニペット `FFT` | `math/fft.hpp` | 浮動小数の FFT。ACL の `convolution` は NTT なので任意 mod / 実数はこちら |
